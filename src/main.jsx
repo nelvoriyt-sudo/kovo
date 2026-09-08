@@ -9,35 +9,43 @@ const DATA_KEY = "kovo-finance-data-v2";
 
 function CloudShell() {
   const [session, setSession] = useState(getStoredSession());
-  const [ready, setReady] = useState(!getStoredSession());
-  const [open, setOpen] = useState(false);
-  const [syncStatus, setSyncStatus] = useState(getStoredSession() ? "Connecting…" : "Sign in to sync devices");
+  const [authReady, setAuthReady] = useState(false);
+  const [accountOpen, setAccountOpen] = useState(false);
+  const [syncStatus, setSyncStatus] = useState("Opening Kovo…");
   const lastLocal = useRef(localStorage.getItem(DATA_KEY) || "");
   const lastCloudUpdate = useRef("");
   const saving = useRef(false);
 
   const connect = useCallback(async (nextSession = null) => {
+    setSyncStatus("Syncing…");
     const active = nextSession || await freshSession();
     setSession(active);
-    if (!active?.user) { setReady(true); setSyncStatus("Sign in to sync devices"); return; }
-    setSyncStatus("Syncing…");
+    if (!active?.user) {
+      setAuthReady(true);
+      setSyncStatus("Sign in required");
+      return;
+    }
     try {
       const remote = await loadCloudData(active.user.id);
       const localRaw = localStorage.getItem(DATA_KEY);
       if (remote?.data) {
-        localStorage.setItem(DATA_KEY, JSON.stringify(remote.data));
-        lastLocal.current = JSON.stringify(remote.data);
+        const remoteRaw = JSON.stringify(remote.data);
+        localStorage.setItem(DATA_KEY, remoteRaw);
+        lastLocal.current = remoteRaw;
         lastCloudUpdate.current = remote.updated_at || "";
       } else if (localRaw) {
         lastCloudUpdate.current = await saveCloudData(active.user.id, JSON.parse(localRaw)) || "";
         lastLocal.current = localRaw;
       }
-      setSyncStatus("Synced across devices");
-    } catch (e) { setSyncStatus(`Sync paused: ${e.message}`); }
-    setReady(true);
+      setSyncStatus("Synced");
+    } catch (e) {
+      setSyncStatus(`Sync paused: ${e.message}`);
+    }
+    setAuthReady(true);
   }, []);
 
   useEffect(() => { connect(); }, [connect]);
+
   useEffect(() => {
     const onAuth = () => connect();
     window.addEventListener("kovo-auth-changed", onAuth);
@@ -45,23 +53,29 @@ function CloudShell() {
   }, [connect]);
 
   useEffect(() => {
-    if (!session?.user || !ready) return;
-    const timer = setInterval(async () => {
+    if (!session?.user || !authReady) return;
+    const push = async () => {
       const raw = localStorage.getItem(DATA_KEY) || "";
       if (!raw || raw === lastLocal.current || saving.current) return;
-      saving.current = true; setSyncStatus("Saving…");
+      saving.current = true;
+      setSyncStatus("Saving…");
       try {
         lastCloudUpdate.current = await saveCloudData(session.user.id, JSON.parse(raw)) || lastCloudUpdate.current;
-        lastLocal.current = raw; setSyncStatus("Synced across devices");
-      } catch (e) { setSyncStatus(`Sync paused: ${e.message}`); }
-      finally { saving.current = false; }
-    }, 1200);
+        lastLocal.current = raw;
+        setSyncStatus("Synced");
+      } catch (e) {
+        setSyncStatus(`Sync paused: ${e.message}`);
+      } finally {
+        saving.current = false;
+      }
+    };
+    const timer = setInterval(push, 900);
     return () => clearInterval(timer);
-  }, [session, ready]);
+  }, [session, authReady]);
 
   useEffect(() => {
-    if (!session?.user || !ready) return;
-    const check = async () => {
+    if (!session?.user || !authReady) return;
+    const pull = async () => {
       if (saving.current) return;
       try {
         const remote = await loadCloudData(session.user.id);
@@ -75,21 +89,52 @@ function CloudShell() {
             window.location.reload();
           }
         }
-      } catch (e) { setSyncStatus(`Sync paused: ${e.message}`); }
+      } catch (e) {
+        setSyncStatus(`Sync paused: ${e.message}`);
+      }
     };
-    const timer = setInterval(check, 5000);
-    const onVisible = () => document.visibilityState === "visible" && check();
+    const timer = setInterval(pull, 4000);
+    const onVisible = () => document.visibilityState === "visible" && pull();
+    const onOnline = () => pull();
     document.addEventListener("visibilitychange", onVisible);
-    return () => { clearInterval(timer); document.removeEventListener("visibilitychange", onVisible); };
-  }, [session, ready]);
+    window.addEventListener("online", onOnline);
+    return () => {
+      clearInterval(timer);
+      document.removeEventListener("visibilitychange", onVisible);
+      window.removeEventListener("online", onOnline);
+    };
+  }, [session, authReady]);
 
-  const logout = () => { signOut(); setSession(null); setOpen(false); setSyncStatus("Sign in to sync devices"); };
+  const logout = () => {
+    signOut();
+    setSession(null);
+    setAccountOpen(false);
+    setSyncStatus("Sign in required");
+  };
 
-  if (!ready) return <div className="cloud-loading">Opening Kovo…</div>;
+  if (!authReady) return <div className="kovo-boot"><div className="auth-mark">K<span>↗</span>vo</div><div>Opening your Kovo…</div></div>;
+
+  if (!session?.user) {
+    return <main className="auth-page">
+      <section className="auth-story" aria-hidden="true">
+        <div className="auth-brand">K<span>↗</span>vo</div>
+        <div className="auth-story-copy">
+          <div className="auth-eyebrow">Your money, in one calm place</div>
+          <h1>See where you are.<br />Know what comes next.</h1>
+          <p>Kovo brings your spending, budgets, bills, goals, and net worth together without turning your finances into noise.</p>
+        </div>
+        <div className="auth-trust">Private by account · Automatic cloud sync</div>
+      </section>
+      <section className="auth-panel">
+        <CloudAccount session={session} syncStatus={syncStatus} onSignedIn={(s) => connect(s)} />
+      </section>
+    </main>;
+  }
+
   return <>
     <App />
-    <button className={`cloud-pill ${session?.user ? "connected" : ""}`} onClick={() => setOpen(true)}>{session?.user ? "● Synced" : "Sync devices"}</button>
-    {open && <div className="cloud-overlay" onMouseDown={(e) => e.target === e.currentTarget && setOpen(false)}><div className="cloud-modal"><button className="cloud-close" onClick={() => setOpen(false)} aria-label="Close">×</button><CloudAccount session={session} syncStatus={syncStatus} onSignedIn={(s) => connect(s)} onSignOut={logout} /></div></div>}
+    <button className="cloud-pill connected" onClick={() => setAccountOpen(true)} aria-label="Open Kovo account">● {syncStatus === "Synced" ? "Synced" : syncStatus}</button>
+    {accountOpen && <div className="cloud-overlay" onMouseDown={(e) => e.target === e.currentTarget && setAccountOpen(false)}><div className="cloud-modal"><button className="cloud-close" onClick={() => setAccountOpen(false)} aria-label="Close">×</button><CloudAccount session={session} syncStatus={syncStatus} onSignOut={logout} /></div></div>}
   </>;
 }
 
