@@ -5,10 +5,223 @@
 }
 
 html, body, #root {
-  height: 100%;
-  min-height: 100vh;
+  min-height: 100%;
 }
 
 body {
-  background: #12151b;
+  background: #f4f2eb;
+  color: #203128;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Kovo v0.2 visual layer. Kept outside App.jsx so the redesign can evolve
+   without mixing presentation work into finance/domain logic. */
+.kovo-app {
+  --ink: #f4f2eb !important;
+  --surface: #fbfaf6 !important;
+  --surface-raised: #f0eee6 !important;
+  --text: #203128 !important;
+  --text-secondary: #5d695f !important;
+  --text-muted: #899188 !important;
+  --hairline: rgba(42, 64, 50, 0.10) !important;
+  --moss: #55745e !important;
+  --clay: #b96d54 !important;
+  --gold: #a98445 !important;
+  --accent: #55745e !important;
+  background: #f4f2eb !important;
+  color: var(--text) !important;
+}
+
+.kovo-app .sidebar {
+  width: 232px !important;
+  background: #e8ede4 !important;
+  border-right: 1px solid rgba(42, 64, 50, 0.08) !important;
+  padding: 28px 18px !important;
+}
+
+.kovo-app .brand {
+  color: #294233 !important;
+  font-size: 25px !important;
+  letter-spacing: -0.03em;
+  border-bottom-color: rgba(42, 64, 50, 0.08) !important;
+  padding-bottom: 24px !important;
+}
+
+.kovo-app .brand-dot { color: #6d8c73 !important; }
+
+.kovo-app .nav-item {
+  color: #637066 !important;
+  border-radius: 11px !important;
+  padding: 11px 12px !important;
+  margin-bottom: 4px !important;
+  transition: background 150ms ease, color 150ms ease, transform 150ms ease;
+}
+
+.kovo-app .nav-item:hover {
+  background: rgba(255,255,255,0.55) !important;
+  color: #294233 !important;
+}
+
+.kovo-app .nav-item.active {
+  background: #fbfaf6 !important;
+  color: #294233 !important;
+  box-shadow: 0 1px 0 rgba(42,64,50,0.04), 0 5px 16px rgba(42,64,50,0.05);
+}
+
+.kovo-app .nav-item.active svg { color: #55745e !important; }
+.kovo-app .sidebar-foot {
+  color: #7e897f !important;
+  border-top-color: rgba(42,64,50,0.08) !important;
+}
+
+.kovo-app .main {
+  padding: 38px 44px 64px !important;
+}
+
+.kovo-app .page {
+  max-width: 1040px !important;
+  gap: 20px !important;
+}
+
+.kovo-app .page-header h1 {
+  color: #294233 !important;
+  font-size: 28px !important;
+  letter-spacing: -0.025em;
+}
+
+.kovo-app .hero-panel,
+.kovo-app .panel {
+  background: #fbfaf6 !important;
+  border-color: rgba(42,64,50,0.09) !important;
+  box-shadow: 0 1px 1px rgba(42,64,50,0.02), 0 8px 28px rgba(42,64,50,0.045);
+}
+
+.kovo-app .hero-panel {
+  border-radius: 20px !important;
+  padding: 28px 30px 18px !important;
+  background: linear-gradient(135deg, #fbfaf6 0%, #f5f7f0 100%) !important;
+}
+
+.kovo-app .panel {
+  border-radius: 16px !important;
+  padding: 20px 22px !important;
+}
+
+.kovo-app .hero-label,
+.kovo-app .text-muted { color: #899188 !important; }
+.kovo-app .hero-value {
+  color: #203128 !important;
+  font-size: 44px !important;
+  letter-spacing: -0.035em;
+}
+.kovo-app .panel-title { color: #354b3d !important; }
+
+.kovo-app .flow-track,
+.kovo-app .meter-track {
+  background: #e8e9e1 !important;
+}
+
+.kovo-app .bill-mini,
+.kovo-app .account-row,
+.kovo-app .tx-row,
+.kovo-app .budget-row {
+  border-bottom-color: rgba(42,64,50,0.08) !important;
+}
+
+.kovo-app .bill-day {
+  background: #eef0e8 !important;
+  color: #8f7040 !important;
+}
+
+.kovo-app .field,
+.kovo-app .btn-primary,
+.kovo-app .chip-btn,
+.kovo-app .accent-swatch,
+.kovo-app .cat-chip {
+  background: #f1f0e9 !important;
+  border-color: rgba(42,64,50,0.10) !important;
+  color: #354b3d !important;
+}
+
+.kovo-app .field {
+  min-height: 40px;
+}
+
+.kovo-app .field:focus {
+  border-color: #6d8c73 !important;
+  box-shadow: 0 0 0 3px rgba(85,116,94,0.10);
+}
+
+.kovo-app .btn-primary {
+  min-height: 40px;
+  border-radius: 10px !important;
+  transition: background 150ms ease, border-color 150ms ease, transform 150ms ease;
+}
+
+.kovo-app .btn-primary:hover,
+.kovo-app .chip-btn:hover {
+  background: #e8ede4 !important;
+  border-color: #9caf9e !important;
+  color: #35523e !important;
+}
+
+.kovo-app .link-btn { color: #708077 !important; }
+.kovo-app .link-btn:hover { color: #476550 !important; }
+.kovo-app .icon-btn { color: #899188 !important; }
+.kovo-app .icon-btn:hover {
+  color: #354b3d !important;
+  background: #eeeee7 !important;
+}
+
+.kovo-app .inline-num {
+  color: #354b3d !important;
+  border-bottom-color: rgba(42,64,50,0.18) !important;
+}
+
+.kovo-app .alloc-bar { background: #e8e9e1; }
+.kovo-app .empty-note { color: #899188 !important; }
+
+@media (max-width: 780px) {
+  body { background: #f4f2eb; }
+
+  .kovo-app .sidebar {
+    background: rgba(239, 242, 234, 0.97) !important;
+    border-top: 1px solid rgba(42,64,50,0.10) !important;
+    padding: 7px 6px max(7px, env(safe-area-inset-bottom)) !important;
+    gap: 2px;
+  }
+
+  .kovo-app .nav-item {
+    min-width: 62px !important;
+    padding: 8px 9px !important;
+    color: #7a857c !important;
+  }
+
+  .kovo-app .nav-item.active {
+    background: #fbfaf6 !important;
+    box-shadow: none;
+  }
+
+  .kovo-app .main {
+    padding: 24px 16px 106px !important;
+  }
+
+  .kovo-app .page { gap: 14px !important; }
+  .kovo-app .page-header h1 { font-size: 25px !important; }
+  .kovo-app .hero-panel { padding: 22px 20px 14px !important; border-radius: 17px !important; }
+  .kovo-app .hero-value { font-size: 36px !important; }
+  .kovo-app .panel { padding: 17px !important; border-radius: 14px !important; }
+
+  .kovo-app .add-form:not(.wrap) { flex-wrap: wrap; }
+  .kovo-app .add-form .field { min-width: 0; max-width: 100% !important; }
+  .kovo-app .account-row,
+  .kovo-app .tx-row { gap: 8px !important; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .kovo-app *, .kovo-app *::before, .kovo-app *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
 }
