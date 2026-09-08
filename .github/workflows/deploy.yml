@@ -1,0 +1,29 @@
+name: Deploy Kovo Live
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: kovo-live
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - name: Publish gh-pages
+        run: npx gh-pages -d dist -u "github-actions-bot <support+actions@github.com>"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
