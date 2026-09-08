@@ -1,0 +1,32 @@
+name: Kovo v0.2 Preview
+
+on:
+  push:
+    branches:
+      - kovo-v0.2-foundation
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-preview:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+      - name: Build Kovo
+        run: npm run build
+      - name: Upload preview
+        uses: actions/upload-artifact@v4
+        with:
+          name: kovo-v0.2-preview
+          path: dist
+          retention-days: 14
