@@ -2,6 +2,7 @@ import React, { useState } from "react";
 
 const DATA_KEY = "kovo-finance-data-v2";
 const CENTS_PER_DOLLAR = 100;
+const FALLBACK_PERSIST_DELAY_MS = 700;
 
 function todayISO() {
   return new Date().toISOString().slice(0, 10);
@@ -53,6 +54,11 @@ function upsertById(list = [], item) {
   return next;
 }
 
+function transactionAlreadyStored(transactionId) {
+  const storedData = parseStoredData();
+  return Boolean(storedData?.transactions?.some((transaction) => transaction.id === transactionId));
+}
+
 function saveTipToLocalStorage(transaction, tipEntry) {
   const storedData = parseStoredData() || {};
 
@@ -63,15 +69,20 @@ function saveTipToLocalStorage(transaction, tipEntry) {
   });
 }
 
-// Hands the new transaction/tip entry to the running App instance so its
-// in-memory state updates immediately, without creating a second copy of
-// the transaction and without relying on the UI happening to look a
-// particular way (previously this simulated clicking through the Ledger
-// form, which created a duplicate transaction and broke silently if the
-// Ledger page's markup changed).
 function notifyAppOfNewTip(transaction, tipEntry) {
-  saveTipToLocalStorage(transaction, tipEntry);
+  // Canonical path: notify the running App instance so React state updates
+  // immediately and the normal autosave/sync path owns persistence.
   window.dispatchEvent(new CustomEvent("kovo-tip-added", { detail: { transaction, tipEntry } }));
+  window.dispatchEvent(new CustomEvent("kovo-open-page", { detail: { page: "ledger" } }));
+
+  // Fallback path: if the App listener is not attached yet or a stale build is
+  // still cached on the device, persist exactly the same IDs once. This avoids
+  // duplicate income rows while still protecting offline tip entries.
+  window.setTimeout(() => {
+    if (transactionAlreadyStored(transaction.id)) return;
+    saveTipToLocalStorage(transaction, tipEntry);
+    window.location.reload();
+  }, FALLBACK_PERSIST_DELAY_MS);
 }
 
 function TipLoggerStyles() {
@@ -141,7 +152,7 @@ export default function QuickTipLogger() {
       shiftDate: draft.shiftDate,
       shiftLabel,
       cashTipsCents: cashCents,
-      cardTipsCents: cardCents,
+      cardTipsCents,
       tipOutCents,
       netTipCents,
       notes: draft.notes.trim(),
