@@ -1,7 +1,41 @@
 import React, { useState } from "react";
 import { requestPasswordReset, signIn, signUp } from "../lib/cloud.js";
 
-export default function CloudAccount({ session, syncStatus, onSignedIn, onSignOut }) {
+const recoveryButtonStyle = {
+  background: "transparent",
+  border: 0,
+  color: "#2c5c3e",
+  cursor: "pointer",
+  font: "700 12px Manrope, system-ui",
+  marginTop: 8,
+  padding: 0,
+};
+
+const localModeWrapStyle = {
+  borderTop: "1px solid #dce2dc",
+  marginTop: 22,
+  paddingTop: 20,
+};
+
+const localModeButtonStyle = {
+  background: "#eef2ed",
+  border: "1px solid #cbd5cc",
+  borderRadius: 6,
+  color: "#274432",
+  cursor: "pointer",
+  font: "700 13px Manrope, system-ui",
+  padding: "10px 12px",
+  width: "100%",
+};
+
+const localModeCopyStyle = {
+  color: "#7b887f",
+  fontSize: 11.5,
+  lineHeight: 1.5,
+  marginTop: 10,
+};
+
+export default function CloudAccount({ session, syncStatus, onSignedIn, onSignOut, onContinueLocally }) {
   const [mode, setMode] = useState("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -107,7 +141,7 @@ export default function CloudAccount({ session, syncStatus, onSignedIn, onSignOu
         </button>
       </form>
       {mode === "signin" && (
-        <button className="auth-recovery" disabled={busy} onClick={sendPasswordReset} type="button">
+        <button style={recoveryButtonStyle} disabled={busy} onClick={sendPasswordReset} type="button">
           Forgot password?
         </button>
       )}
@@ -118,6 +152,14 @@ export default function CloudAccount({ session, syncStatus, onSignedIn, onSignOu
           {mode === "signup" ? "Sign in" : "Create an account"}
         </button>
       </div>
+      {onContinueLocally && (
+        <div style={localModeWrapStyle}>
+          <button style={localModeButtonStyle} disabled={busy} onClick={onContinueLocally} type="button">
+            Continue on this device for now
+          </button>
+          <p style={localModeCopyStyle}>This lets you test Kovo while email delivery is being finished. Cloud sync turns on after sign-in.</p>
+        </div>
+      )}
       <div className="auth-fineprint">Your login stays securely remembered on this device until you sign out.</div>
     </div>
   );
