@@ -46,11 +46,11 @@ function readPendingSync() {
   return parseJson(localStorage.getItem(PENDING_SYNC_KEY));
 }
 
-function mergeById(localItems = [], cloudItems = []) {
+function mergeByKey(localItems = [], cloudItems = [], getKey = (item) => item.id) {
   const merged = new Map();
 
-  cloudItems.forEach((item) => merged.set(item.id, item));
-  localItems.forEach((item) => merged.set(item.id, item));
+  cloudItems.forEach((item, index) => merged.set(getKey(item) || `cloud-${index}`, item));
+  localItems.forEach((item, index) => merged.set(getKey(item) || `local-${index}`, item));
 
   return Array.from(merged.values());
 }
@@ -60,12 +60,8 @@ function mergeCategories(localCategories = [], cloudCategories = []) {
 }
 
 function mergeHistory(localHistory = [], cloudHistory = []) {
-  const byDate = new Map();
-
-  cloudHistory.forEach((entry) => byDate.set(entry.date, entry));
-  localHistory.forEach((entry) => byDate.set(entry.date, entry));
-
-  return Array.from(byDate.values()).sort((a, b) => a.date.localeCompare(b.date));
+  return mergeByKey(localHistory, cloudHistory, (entry) => entry.date)
+    .sort((a, b) => a.date.localeCompare(b.date));
 }
 
 function mergeKovoData(localData, cloudData) {
@@ -79,13 +75,13 @@ function mergeKovoData(localData, cloudData) {
       ...(cloudData.settings || {}),
       ...(localData.settings || {}),
     },
-    accounts: mergeById(localData.accounts, cloudData.accounts),
-    investments: mergeById(localData.investments, cloudData.investments),
-    transactions: mergeById(localData.transactions, cloudData.transactions),
-    budgets: mergeById(localData.budgets, cloudData.budgets),
-    bills: mergeById(localData.bills, cloudData.bills),
-    goals: mergeById(localData.goals, cloudData.goals),
-    tipEntries: mergeById(localData.tipEntries, cloudData.tipEntries),
+    accounts: mergeByKey(localData.accounts, cloudData.accounts),
+    investments: mergeByKey(localData.investments, cloudData.investments),
+    transactions: mergeByKey(localData.transactions, cloudData.transactions),
+    budgets: mergeByKey(localData.budgets, cloudData.budgets, (budget) => budget.category),
+    bills: mergeByKey(localData.bills, cloudData.bills),
+    goals: mergeByKey(localData.goals, cloudData.goals),
+    tipEntries: mergeByKey(localData.tipEntries, cloudData.tipEntries),
     categories: mergeCategories(localData.categories, cloudData.categories),
     history: mergeHistory(localData.history, cloudData.history),
   };
