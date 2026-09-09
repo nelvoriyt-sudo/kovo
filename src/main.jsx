@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import ReactDOM from "react-dom/client";
 import App from "./App.jsx";
 import CloudAccount from "./components/CloudAccount.jsx";
+import QuickTipLogger from "./components/QuickTipLogger.jsx";
 import { freshSession, getStoredSession, loadCloudData, saveCloudData, signOut } from "./lib/cloud.js";
 import "./index.css";
 
@@ -84,6 +85,7 @@ function mergeKovoData(localData, cloudData) {
     budgets: mergeById(localData.budgets, cloudData.budgets),
     bills: mergeById(localData.bills, cloudData.bills),
     goals: mergeById(localData.goals, cloudData.goals),
+    tipEntries: mergeById(localData.tipEntries, cloudData.tipEntries),
     categories: mergeCategories(localData.categories, cloudData.categories),
     history: mergeHistory(localData.history, cloudData.history),
   };
@@ -297,6 +299,7 @@ function CloudShell() {
 
   return <>
     <App />
+    <QuickTipLogger />
     <button className="cloud-pill connected" onClick={() => setAccountOpen(true)} aria-label="Open Kovo account">● {syncStatus === "Synced" ? "Synced" : syncStatus}</button>
     {accountOpen && <div className="cloud-overlay" onMouseDown={(e) => e.target === e.currentTarget && setAccountOpen(false)}><div className="cloud-modal"><button className="cloud-close" onClick={() => setAccountOpen(false)} aria-label="Close">×</button><CloudAccount session={session} syncStatus={syncStatus} onSignOut={logout} /></div></div>}
   </>;
