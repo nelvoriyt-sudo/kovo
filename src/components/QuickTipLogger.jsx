@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 
 const DATA_KEY = "kovo-finance-data-v2";
-const ACTIVE_PAGE_KEY = "kovo-active-page-v1";
 const CENTS_PER_DOLLAR = 100;
 
 function todayISO() {
@@ -9,8 +8,10 @@ function todayISO() {
 }
 
 function createId(prefix) {
-  const randomPart = Math.random().toString(36).slice(2, 10);
-  return `${prefix}_${Date.now()}_${randomPart}`;
+  const randomPart = typeof crypto !== "undefined" && crypto.randomUUID
+    ? crypto.randomUUID()
+    : `${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
+  return `${prefix}_${randomPart}`;
 }
 
 function parseStoredData() {
@@ -43,29 +44,6 @@ function formatMoney(amount) {
   }).format(amount || 0);
 }
 
-function updateInputValue(input, value) {
-  const prototype = input instanceof HTMLTextAreaElement
-    ? window.HTMLTextAreaElement.prototype
-    : input instanceof HTMLSelectElement
-      ? window.HTMLSelectElement.prototype
-      : window.HTMLInputElement.prototype;
-  const valueSetter = Object.getOwnPropertyDescriptor(prototype, "value")?.set;
-
-  if (valueSetter) valueSetter.call(input, value);
-  else input.value = value;
-
-  input.dispatchEvent(new Event("input", { bubbles: true }));
-  input.dispatchEvent(new Event("change", { bubbles: true }));
-}
-
-function clickButtonByText(text) {
-  const button = Array.from(document.querySelectorAll("button"))
-    .find((candidate) => candidate.textContent?.trim().includes(text));
-
-  button?.click();
-  return Boolean(button);
-}
-
 function upsertById(list = [], item) {
   const existingIndex = list.findIndex((candidate) => candidate.id === item.id);
   if (existingIndex === -1) return [item, ...list];
@@ -85,38 +63,15 @@ function saveTipToLocalStorage(transaction, tipEntry) {
   });
 }
 
-function applyTransactionThroughLedger(transaction, tipEntry) {
-  sessionStorage.setItem(ACTIVE_PAGE_KEY, "ledger");
+// Hands the new transaction/tip entry to the running App instance so its
+// in-memory state updates immediately, without creating a second copy of
+// the transaction and without relying on the UI happening to look a
+// particular way (previously this simulated clicking through the Ledger
+// form, which created a duplicate transaction and broke silently if the
+// Ledger page's markup changed).
+function notifyAppOfNewTip(transaction, tipEntry) {
   saveTipToLocalStorage(transaction, tipEntry);
-  clickButtonByText("Ledger");
-
-  window.setTimeout(() => {
-    const ledgerFormAlreadyOpen = document.querySelector(".add-form input[placeholder='Description']");
-    if (!ledgerFormAlreadyOpen) clickButtonByText("Add transaction");
-
-    window.setTimeout(() => {
-      const form = document.querySelector(".add-form");
-      if (!form) return;
-
-      const dateInput = form.querySelector("input[type='date']");
-      const descriptionInput = form.querySelector("input[placeholder='Description']");
-      const categorySelect = form.querySelector("select");
-      const amountInput = form.querySelector("input[placeholder='-42.50']");
-
-      if (!dateInput || !descriptionInput || !categorySelect || !amountInput) return;
-
-      updateInputValue(dateInput, transaction.date);
-      updateInputValue(descriptionInput, transaction.description);
-      updateInputValue(categorySelect, transaction.category);
-      updateInputValue(amountInput, String(transaction.amount));
-
-      window.setTimeout(() => {
-        const addButton = Array.from(form.querySelectorAll("button"))
-          .find((button) => button.textContent?.trim() === "Add");
-        addButton?.click();
-      }, 100);
-    }, 100);
-  }, 100);
+  window.dispatchEvent(new CustomEvent("kovo-tip-added", { detail: { transaction, tipEntry } }));
 }
 
 function TipLoggerStyles() {
@@ -206,8 +161,7 @@ export default function QuickTipLogger() {
       createdAt,
     };
 
-    saveTipToLocalStorage(transaction, tipEntry);
-    applyTransactionThroughLedger(transaction, tipEntry);
+    notifyAppOfNewTip(transaction, tipEntry);
 
     setDraft({ shiftDate: todayISO(), shiftLabel: "", cashTips: "", cardTips: "", tipOut: "", notes: "" });
     setMessage(`${formatMoney(netTipAmount)} saved to Ledger.`);
