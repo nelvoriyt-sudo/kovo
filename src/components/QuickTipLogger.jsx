@@ -1,6 +1,7 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 
 const DATA_KEY = "kovo-finance-data-v2";
+const OPEN_LEDGER_AFTER_SAVE_KEY = "kovo-open-ledger-after-tip-v1";
 const CENTS_PER_DOLLAR = 100;
 
 function todayISO() {
@@ -36,6 +37,12 @@ function formatMoney(amount) {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   }).format(amount || 0);
+}
+
+function openLedgerPage() {
+  const navButtons = Array.from(document.querySelectorAll("button"));
+  const ledgerButton = navButtons.find((button) => button.textContent?.trim() === "Ledger");
+  ledgerButton?.click();
 }
 
 function TipLoggerStyles() {
@@ -222,6 +229,13 @@ export default function QuickTipLogger() {
     notes: "",
   });
 
+  useEffect(() => {
+    if (sessionStorage.getItem(OPEN_LEDGER_AFTER_SAVE_KEY) !== "true") return;
+
+    sessionStorage.removeItem(OPEN_LEDGER_AFTER_SAVE_KEY);
+    window.setTimeout(openLedgerPage, 120);
+  }, []);
+
   const cashCents = toCents(draft.cashTips);
   const cardCents = toCents(draft.cardTips);
   const tipOutCents = toCents(draft.tipOut);
@@ -249,6 +263,7 @@ export default function QuickTipLogger() {
     const transactionId = createId("tx_tip");
     const shiftLabel = draft.shiftLabel.trim() || "Shift tips";
     const netTipAmount = toDollars(netTipCents);
+    const createdAt = new Date().toISOString();
 
     const tipEntry = {
       id: tipEntryId,
@@ -260,7 +275,7 @@ export default function QuickTipLogger() {
       netTipCents,
       notes: draft.notes.trim(),
       transactionId,
-      createdAt: new Date().toISOString(),
+      createdAt,
       syncStatus: navigator.onLine ? "pending" : "offline-pending",
     };
 
@@ -272,7 +287,7 @@ export default function QuickTipLogger() {
       amount: netTipAmount,
       source: "tip-entry",
       sourceId: tipEntryId,
-      createdAt: tipEntry.createdAt,
+      createdAt,
     };
 
     const nextData = {
@@ -281,7 +296,6 @@ export default function QuickTipLogger() {
       transactions: [transaction, ...(currentData.transactions || [])],
     };
 
-    localStorage.setItem(DATA_KEY, JSON.stringify(nextData));
     setDraft({
       shiftDate: todayISO(),
       shiftLabel: "",
@@ -290,9 +304,15 @@ export default function QuickTipLogger() {
       tipOut: "",
       notes: "",
     });
-    setMessage(`${formatMoney(netTipAmount)} saved. It will sync automatically.`);
+    setMessage(`${formatMoney(netTipAmount)} saved. Opening Ledger…`);
 
-    window.setTimeout(() => window.location.reload(), 450);
+    // The main app still has a short autosave timer for its current state.
+    // Waiting avoids that timer overwriting this new offline-first tip entry.
+    window.setTimeout(() => {
+      localStorage.setItem(DATA_KEY, JSON.stringify(nextData));
+      sessionStorage.setItem(OPEN_LEDGER_AFTER_SAVE_KEY, "true");
+      window.location.reload();
+    }, 360);
   };
 
   return (
