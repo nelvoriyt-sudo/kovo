@@ -9,6 +9,7 @@ import "./index.css";
 const DATA_KEY = "kovo-finance-data-v2";
 const REVISION_KEY = "kovo-cloud-revision-v1";
 const PENDING_SYNC_KEY = "kovo-pending-sync-v1";
+const LOCAL_MODE_KEY = "kovo-local-mode-v1";
 const SAVE_CHECK_INTERVAL_MS = 900;
 const CLOUD_PULL_INTERVAL_MS = 4000;
 
@@ -44,6 +45,15 @@ function clearPendingSync() {
 
 function readPendingSync() {
   return parseJson(localStorage.getItem(PENDING_SYNC_KEY));
+}
+
+function readLocalMode() {
+  return localStorage.getItem(LOCAL_MODE_KEY) === "true";
+}
+
+function setLocalMode(enabled) {
+  if (enabled) localStorage.setItem(LOCAL_MODE_KEY, "true");
+  else localStorage.removeItem(LOCAL_MODE_KEY);
 }
 
 function mergeByKey(localItems = [], cloudItems = [], getKey = (item) => item.id) {
@@ -99,6 +109,7 @@ function CloudShell() {
   const [authReady, setAuthReady] = useState(false);
   const [accountOpen, setAccountOpen] = useState(false);
   const [syncStatus, setSyncStatus] = useState("Opening Kovo…");
+  const [isLocalMode, setIsLocalMode] = useState(readLocalMode());
   const lastLocal = useRef(localStorage.getItem(DATA_KEY) || "");
   const currentRevision = useRef(readRevision());
   const saving = useRef(false);
@@ -142,9 +153,12 @@ function CloudShell() {
 
     if (!active?.user) {
       setAuthReady(true);
-      setSyncStatus("Sign in required");
+      setSyncStatus(readLocalMode() ? "Local only" : "Sign in required");
       return;
     }
+
+    setLocalMode(false);
+    setIsLocalMode(false);
 
     try {
       const remote = await loadCloudData(active.user.id);
@@ -190,7 +204,7 @@ function CloudShell() {
   }, [connect]);
 
   useEffect(() => {
-    if (!session?.user || !authReady) return;
+    if (!session?.user || !authReady || isLocalMode) return;
 
     const pushLocalChanges = async () => {
       const raw = localStorage.getItem(DATA_KEY) || "";
@@ -221,10 +235,10 @@ function CloudShell() {
 
     const timer = setInterval(pushLocalChanges, SAVE_CHECK_INTERVAL_MS);
     return () => clearInterval(timer);
-  }, [session, authReady, saveWithConflictRecovery]);
+  }, [session, authReady, isLocalMode, saveWithConflictRecovery]);
 
   useEffect(() => {
-    if (!session?.user || !authReady) return;
+    if (!session?.user || !authReady || isLocalMode) return;
 
     const pullCloudChanges = async () => {
       if (saving.current || !navigator.onLine) return;
@@ -265,18 +279,34 @@ function CloudShell() {
       document.removeEventListener("visibilitychange", onVisible);
       window.removeEventListener("online", onOnline);
     };
-  }, [session, authReady]);
+  }, [session, authReady, isLocalMode]);
 
   const logout = () => {
     signOut();
+    setLocalMode(false);
+    setIsLocalMode(false);
     setSession(null);
     setAccountOpen(false);
     setSyncStatus("Sign in required");
   };
 
+  const continueLocally = () => {
+    setLocalMode(true);
+    setIsLocalMode(true);
+    setAuthReady(true);
+    setSyncStatus("Local only");
+  };
+
+  const leaveLocalMode = () => {
+    setLocalMode(false);
+    setIsLocalMode(false);
+    setSession(null);
+    setSyncStatus("Sign in required");
+  };
+
   if (!authReady) return <div className="kovo-boot"><div className="auth-mark">K<span>↗</span>vo</div><div>Opening your Kovo…</div></div>;
 
-  if (!session?.user) {
+  if (!session?.user && !isLocalMode) {
     return <main className="auth-page">
       <section className="auth-story" aria-hidden="true">
         <div className="auth-brand">K<span>↗</span>vo</div>
@@ -288,7 +318,7 @@ function CloudShell() {
         <div className="auth-trust">Private by account · Automatic cloud sync</div>
       </section>
       <section className="auth-panel">
-        <CloudAccount session={session} syncStatus={syncStatus} onSignedIn={(s) => connect(s)} />
+        <CloudAccount session={session} syncStatus={syncStatus} onSignedIn={(s) => connect(s)} onContinueLocally={continueLocally} />
       </section>
     </main>;
   }
@@ -296,8 +326,10 @@ function CloudShell() {
   return <>
     <App />
     <QuickTipLogger />
-    <button className="cloud-pill connected" onClick={() => setAccountOpen(true)} aria-label="Open Kovo account">● {syncStatus === "Synced" ? "Synced" : syncStatus}</button>
-    {accountOpen && <div className="cloud-overlay" onMouseDown={(e) => e.target === e.currentTarget && setAccountOpen(false)}><div className="cloud-modal"><button className="cloud-close" onClick={() => setAccountOpen(false)} aria-label="Close">×</button><CloudAccount session={session} syncStatus={syncStatus} onSignOut={logout} /></div></div>}
+    <button className={`cloud-pill ${isLocalMode ? "local" : "connected"}`} onClick={() => setAccountOpen(true)} aria-label="Open Kovo account">
+      ● {isLocalMode ? "Local only" : syncStatus === "Synced" ? "Synced" : syncStatus}
+    </button>
+    {accountOpen && <div className="cloud-overlay" onMouseDown={(e) => e.target === e.currentTarget && setAccountOpen(false)}><div className="cloud-modal"><button className="cloud-close" onClick={() => setAccountOpen(false)} aria-label="Close">×</button><CloudAccount session={session} syncStatus={isLocalMode ? "Local-only testing. Sign in later to enable cloud sync." : syncStatus} onSignOut={isLocalMode ? leaveLocalMode : logout} /></div></div>}
   </>;
 }
 
