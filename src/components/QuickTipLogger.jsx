@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 
 const DATA_KEY = "kovo-finance-data-v2";
-const OPEN_LEDGER_AFTER_SAVE_KEY = "kovo-open-ledger-after-tip-v1";
+const ACTIVE_PAGE_KEY = "kovo-active-page-v1";
 const CENTS_PER_DOLLAR = 100;
 
 function todayISO() {
@@ -19,6 +19,10 @@ function parseStoredData() {
   } catch {
     return null;
   }
+}
+
+function writeStoredData(data) {
+  localStorage.setItem(DATA_KEY, JSON.stringify(data));
 }
 
 function toCents(value) {
@@ -39,180 +43,105 @@ function formatMoney(amount) {
   }).format(amount || 0);
 }
 
-function openLedgerPage() {
-  const navButtons = Array.from(document.querySelectorAll("button"));
-  const ledgerButton = navButtons.find((button) => button.textContent?.trim() === "Ledger");
-  ledgerButton?.click();
+function updateInputValue(input, value) {
+  const prototype = input instanceof HTMLTextAreaElement
+    ? window.HTMLTextAreaElement.prototype
+    : input instanceof HTMLSelectElement
+      ? window.HTMLSelectElement.prototype
+      : window.HTMLInputElement.prototype;
+  const valueSetter = Object.getOwnPropertyDescriptor(prototype, "value")?.set;
+
+  if (valueSetter) valueSetter.call(input, value);
+  else input.value = value;
+
+  input.dispatchEvent(new Event("input", { bubbles: true }));
+  input.dispatchEvent(new Event("change", { bubbles: true }));
+}
+
+function clickButtonByText(text) {
+  const button = Array.from(document.querySelectorAll("button"))
+    .find((candidate) => candidate.textContent?.trim().includes(text));
+
+  button?.click();
+  return Boolean(button);
+}
+
+function upsertById(list = [], item) {
+  const existingIndex = list.findIndex((candidate) => candidate.id === item.id);
+  if (existingIndex === -1) return [item, ...list];
+
+  const next = [...list];
+  next[existingIndex] = item;
+  return next;
+}
+
+function saveTipToLocalStorage(transaction, tipEntry) {
+  const storedData = parseStoredData() || {};
+
+  writeStoredData({
+    ...storedData,
+    transactions: upsertById(storedData.transactions || [], transaction),
+    tipEntries: upsertById(storedData.tipEntries || [], tipEntry),
+  });
+}
+
+function applyTransactionThroughLedger(transaction, tipEntry) {
+  sessionStorage.setItem(ACTIVE_PAGE_KEY, "ledger");
+  saveTipToLocalStorage(transaction, tipEntry);
+  clickButtonByText("Ledger");
+
+  window.setTimeout(() => {
+    const ledgerFormAlreadyOpen = document.querySelector(".add-form input[placeholder='Description']");
+    if (!ledgerFormAlreadyOpen) clickButtonByText("Add transaction");
+
+    window.setTimeout(() => {
+      const form = document.querySelector(".add-form");
+      if (!form) return;
+
+      const dateInput = form.querySelector("input[type='date']");
+      const descriptionInput = form.querySelector("input[placeholder='Description']");
+      const categorySelect = form.querySelector("select");
+      const amountInput = form.querySelector("input[placeholder='-42.50']");
+
+      if (!dateInput || !descriptionInput || !categorySelect || !amountInput) return;
+
+      updateInputValue(dateInput, transaction.date);
+      updateInputValue(descriptionInput, transaction.description);
+      updateInputValue(categorySelect, transaction.category);
+      updateInputValue(amountInput, String(transaction.amount));
+
+      window.setTimeout(() => {
+        const addButton = Array.from(form.querySelectorAll("button"))
+          .find((button) => button.textContent?.trim() === "Add");
+        addButton?.click();
+      }, 100);
+    }, 100);
+  }, 100);
 }
 
 function TipLoggerStyles() {
   return (
     <style>{`
-      .tip-capture {
-        position: fixed;
-        right: 18px;
-        bottom: 18px;
-        z-index: 60;
-        font-family: Manrope, system-ui, sans-serif;
-      }
-
-      .tip-fab {
-        min-width: 96px;
-        height: 46px;
-        border: 0;
-        border-radius: 999px;
-        background: #244d36;
-        color: #fff;
-        box-shadow: 0 12px 28px rgba(22, 51, 34, 0.22);
-        cursor: pointer;
-        font: 750 14px Manrope, system-ui, sans-serif;
-      }
-
-      .tip-fab:hover,
-      .tip-fab:focus-visible {
-        background: #1d402d;
-      }
-
-      .tip-card {
-        width: min(360px, calc(100vw - 28px));
-        margin-bottom: 12px;
-        padding: 16px;
-        border: 1px solid #d7ded7;
-        border-radius: 12px;
-        background: #f8faf7;
-        color: #17231c;
-        box-shadow: 0 24px 70px rgba(20, 40, 28, 0.24);
-      }
-
-      .tip-card-head {
-        display: flex;
-        align-items: flex-start;
-        justify-content: space-between;
-        gap: 12px;
-        margin-bottom: 14px;
-      }
-
-      .tip-card-head strong {
-        display: block;
-        font-size: 16px;
-        letter-spacing: -0.02em;
-      }
-
-      .tip-card-head span {
-        display: block;
-        margin-top: 3px;
-        color: #657269;
-        font-size: 12px;
-        line-height: 1.45;
-      }
-
-      .tip-card-head button {
-        border: 0;
-        background: transparent;
-        color: #647269;
-        cursor: pointer;
-        font-size: 24px;
-        line-height: 1;
-      }
-
-      .tip-card label {
-        display: grid;
-        gap: 6px;
-        margin-bottom: 11px;
-        color: #39483e;
-        font-size: 12px;
-        font-weight: 700;
-      }
-
-      .tip-card input,
-      .tip-card textarea {
-        width: 100%;
-        border: 1px solid #cbd5cc;
-        border-radius: 7px;
-        background: #fff;
-        color: #17231c;
-        font: 16px Manrope, system-ui, sans-serif;
-        outline: none;
-      }
-
-      .tip-card input {
-        height: 42px;
-        padding: 0 11px;
-      }
-
-      .tip-card textarea {
-        resize: vertical;
-        min-height: 58px;
-        padding: 10px 11px;
-      }
-
-      .tip-card input:focus,
-      .tip-card textarea:focus {
-        border-color: #50745e;
-        box-shadow: 0 0 0 3px rgba(80, 116, 94, 0.11);
-      }
-
-      .tip-grid {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 10px;
-      }
-
-      .tip-total {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        margin: 6px 0 12px;
-        padding: 11px 12px;
-        border-radius: 8px;
-        background: #eef2ed;
-        color: #405046;
-        font-size: 13px;
-      }
-
-      .tip-total strong {
-        color: #17231c;
-        font-size: 17px;
-      }
-
-      .tip-save {
-        width: 100%;
-        height: 44px;
-        border: 1px solid #244d36;
-        border-radius: 7px;
-        background: #244d36;
-        color: #fff;
-        cursor: pointer;
-        font: 750 13px Manrope, system-ui, sans-serif;
-      }
-
-      .tip-save:hover,
-      .tip-save:focus-visible {
-        background: #1d402d;
-      }
-
-      .tip-message {
-        margin-top: 10px;
-        padding: 9px 10px;
-        border: 1px solid #d7ded7;
-        border-radius: 7px;
-        background: #eef2ed;
-        color: #405046;
-        font-size: 12px;
-        line-height: 1.45;
-      }
-
-      @media (max-width: 780px) {
-        .tip-capture {
-          right: 12px;
-          bottom: calc(82px + env(safe-area-inset-bottom));
-        }
-
-        .tip-card {
-          max-height: calc(100dvh - 150px);
-          overflow: auto;
-        }
-      }
+      .tip-capture { position: fixed; right: 18px; bottom: 18px; z-index: 60; font-family: Manrope, system-ui, sans-serif; }
+      .tip-fab { min-width: 96px; height: 46px; border: 0; border-radius: 999px; background: #244d36; color: #fff; box-shadow: 0 12px 28px rgba(22, 51, 34, 0.22); cursor: pointer; font: 750 14px Manrope, system-ui, sans-serif; }
+      .tip-fab:hover, .tip-fab:focus-visible { background: #1d402d; }
+      .tip-card { width: min(360px, calc(100vw - 28px)); margin-bottom: 12px; padding: 16px; border: 1px solid #d7ded7; border-radius: 12px; background: #f8faf7; color: #17231c; box-shadow: 0 24px 70px rgba(20, 40, 28, 0.24); }
+      .tip-card-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
+      .tip-card-head strong { display: block; font-size: 16px; letter-spacing: -0.02em; }
+      .tip-card-head span { display: block; margin-top: 3px; color: #657269; font-size: 12px; line-height: 1.45; }
+      .tip-card-head button { border: 0; background: transparent; color: #647269; cursor: pointer; font-size: 24px; line-height: 1; }
+      .tip-card label { display: grid; gap: 6px; margin-bottom: 11px; color: #39483e; font-size: 12px; font-weight: 700; }
+      .tip-card input, .tip-card textarea { width: 100%; border: 1px solid #cbd5cc; border-radius: 7px; background: #fff; color: #17231c; font: 16px Manrope, system-ui, sans-serif; outline: none; }
+      .tip-card input { height: 42px; padding: 0 11px; }
+      .tip-card textarea { resize: vertical; min-height: 58px; padding: 10px 11px; }
+      .tip-card input:focus, .tip-card textarea:focus { border-color: #50745e; box-shadow: 0 0 0 3px rgba(80, 116, 94, 0.11); }
+      .tip-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+      .tip-total { display: flex; align-items: center; justify-content: space-between; margin: 6px 0 12px; padding: 11px 12px; border-radius: 8px; background: #eef2ed; color: #405046; font-size: 13px; }
+      .tip-total strong { color: #17231c; font-size: 17px; }
+      .tip-save { width: 100%; height: 44px; border: 1px solid #244d36; border-radius: 7px; background: #244d36; color: #fff; cursor: pointer; font: 750 13px Manrope, system-ui, sans-serif; }
+      .tip-save:hover, .tip-save:focus-visible { background: #1d402d; }
+      .tip-message { margin-top: 10px; padding: 9px 10px; border: 1px solid #d7ded7; border-radius: 7px; background: #eef2ed; color: #405046; font-size: 12px; line-height: 1.45; }
+      @media (max-width: 780px) { .tip-capture { right: 12px; bottom: calc(82px + env(safe-area-inset-bottom)); } .tip-card { max-height: calc(100dvh - 150px); overflow: auto; } }
     `}</style>
   );
 }
@@ -229,13 +158,6 @@ export default function QuickTipLogger() {
     notes: "",
   });
 
-  useEffect(() => {
-    if (sessionStorage.getItem(OPEN_LEDGER_AFTER_SAVE_KEY) !== "true") return;
-
-    sessionStorage.removeItem(OPEN_LEDGER_AFTER_SAVE_KEY);
-    window.setTimeout(openLedgerPage, 120);
-  }, []);
-
   const cashCents = toCents(draft.cashTips);
   const cardCents = toCents(draft.cardTips);
   const tipOutCents = toCents(draft.tipOut);
@@ -248,12 +170,6 @@ export default function QuickTipLogger() {
   };
 
   const saveTipEntry = () => {
-    const currentData = parseStoredData();
-    if (!currentData) {
-      setMessage("Kovo is still opening. Try again in a moment.");
-      return;
-    }
-
     if (!canSave) {
       setMessage("Enter a shift date and at least one tip amount.");
       return;
@@ -290,29 +206,12 @@ export default function QuickTipLogger() {
       createdAt,
     };
 
-    const nextData = {
-      ...currentData,
-      tipEntries: [tipEntry, ...(currentData.tipEntries || [])],
-      transactions: [transaction, ...(currentData.transactions || [])],
-    };
+    saveTipToLocalStorage(transaction, tipEntry);
+    applyTransactionThroughLedger(transaction, tipEntry);
 
-    setDraft({
-      shiftDate: todayISO(),
-      shiftLabel: "",
-      cashTips: "",
-      cardTips: "",
-      tipOut: "",
-      notes: "",
-    });
-    setMessage(`${formatMoney(netTipAmount)} saved. Opening Ledger…`);
-
-    // The main app still has a short autosave timer for its current state.
-    // Waiting avoids that timer overwriting this new offline-first tip entry.
-    window.setTimeout(() => {
-      localStorage.setItem(DATA_KEY, JSON.stringify(nextData));
-      sessionStorage.setItem(OPEN_LEDGER_AFTER_SAVE_KEY, "true");
-      window.location.reload();
-    }, 360);
+    setDraft({ shiftDate: todayISO(), shiftLabel: "", cashTips: "", cardTips: "", tipOut: "", notes: "" });
+    setMessage(`${formatMoney(netTipAmount)} saved to Ledger.`);
+    setOpen(false);
   };
 
   return (
@@ -328,44 +227,21 @@ export default function QuickTipLogger() {
             <button type="button" onClick={() => setOpen(false)} aria-label="Close tip logger">×</button>
           </div>
 
-          <label>
-            Shift date
-            <input type="date" value={draft.shiftDate} onChange={(event) => updateDraft("shiftDate", event.target.value)} />
-          </label>
-          <label>
-            Shift label
-            <input value={draft.shiftLabel} onChange={(event) => updateDraft("shiftLabel", event.target.value)} placeholder="Friday dinner" />
-          </label>
+          <label>Shift date<input type="date" value={draft.shiftDate} onChange={(event) => updateDraft("shiftDate", event.target.value)} /></label>
+          <label>Shift label<input value={draft.shiftLabel} onChange={(event) => updateDraft("shiftLabel", event.target.value)} placeholder="Friday dinner" /></label>
           <div className="tip-grid">
-            <label>
-              Cash tips
-              <input inputMode="decimal" type="number" min="0" step="0.01" value={draft.cashTips} onChange={(event) => updateDraft("cashTips", event.target.value)} placeholder="0.00" />
-            </label>
-            <label>
-              Card tips
-              <input inputMode="decimal" type="number" min="0" step="0.01" value={draft.cardTips} onChange={(event) => updateDraft("cardTips", event.target.value)} placeholder="0.00" />
-            </label>
+            <label>Cash tips<input inputMode="decimal" type="number" min="0" step="0.01" value={draft.cashTips} onChange={(event) => updateDraft("cashTips", event.target.value)} placeholder="0.00" /></label>
+            <label>Card tips<input inputMode="decimal" type="number" min="0" step="0.01" value={draft.cardTips} onChange={(event) => updateDraft("cardTips", event.target.value)} placeholder="0.00" /></label>
           </div>
-          <label>
-            Tip out
-            <input inputMode="decimal" type="number" min="0" step="0.01" value={draft.tipOut} onChange={(event) => updateDraft("tipOut", event.target.value)} placeholder="0.00" />
-          </label>
-          <label>
-            Notes
-            <textarea value={draft.notes} onChange={(event) => updateDraft("notes", event.target.value)} placeholder="Tip pool, section, slow shift, etc." rows="2" />
-          </label>
+          <label>Tip out<input inputMode="decimal" type="number" min="0" step="0.01" value={draft.tipOut} onChange={(event) => updateDraft("tipOut", event.target.value)} placeholder="0.00" /></label>
+          <label>Notes<textarea value={draft.notes} onChange={(event) => updateDraft("notes", event.target.value)} placeholder="Tip pool, section, slow shift, etc." rows="2" /></label>
 
-          <div className="tip-total">
-            <span>Net tips</span>
-            <strong>{formatMoney(toDollars(netTipCents))}</strong>
-          </div>
+          <div className="tip-total"><span>Net tips</span><strong>{formatMoney(toDollars(netTipCents))}</strong></div>
           <button className="tip-save" type="button" onClick={saveTipEntry}>Save tip entry</button>
           {message && <div className="tip-message" role="status">{message}</div>}
         </div>
       )}
-      <button className="tip-fab" type="button" onClick={() => setOpen((current) => !current)} aria-expanded={open}>
-        + Tips
-      </button>
+      <button className="tip-fab" type="button" onClick={() => setOpen((current) => !current)} aria-expanded={open}>+ Tips</button>
     </div>
   );
 }
