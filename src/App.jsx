@@ -12,7 +12,10 @@ const monthKey = (iso) => iso.slice(0, 7);
 const fmt = (n, currency = "USD", opts = {}) =>
   new Intl.NumberFormat("en-US", { style: "currency", currency, maximumFractionDigits: 0, ...opts }).format(n || 0);
 const fmtSigned = (n, currency = "USD") => (n < 0 ? "-" : "+") + fmt(Math.abs(n), currency);
-const uid = () => Math.random().toString(36).slice(2, 10);
+const uid = () =>
+  typeof crypto !== "undefined" && crypto.randomUUID
+    ? crypto.randomUUID()
+    : `${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
 
 const ACCOUNT_TYPES = [
   { id: "checking", label: "Checking", group: "asset" },
@@ -158,6 +161,30 @@ function useKovoData() {
     }, 300);
     return () => clearTimeout(saveTimer.current);
   }, [data]);
+
+  // Pick up transactions logged from outside this component (e.g. the
+  // Quick Tip Logger) so they land in this component's live state exactly
+  // once, instead of only existing in localStorage until a full reload.
+  useEffect(() => {
+    const onTipAdded = (event) => {
+      const { transaction, tipEntry } = event.detail || {};
+      if (!transaction) return;
+
+      setData((current) => {
+        if (current.transactions.some((t) => t.id === transaction.id)) return current;
+
+        const tipEntries = current.tipEntries || [];
+        return {
+          ...current,
+          transactions: [transaction, ...current.transactions],
+          tipEntries: tipEntry ? [tipEntry, ...tipEntries] : tipEntries,
+        };
+      });
+    };
+
+    window.addEventListener("kovo-tip-added", onTipAdded);
+    return () => window.removeEventListener("kovo-tip-added", onTipAdded);
+  }, [setData]);
 
   return [data, setData, "ready"];
 }
