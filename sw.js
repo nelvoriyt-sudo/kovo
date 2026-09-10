@@ -1,6 +1,6 @@
 
-const CACHE='kovo-shell-268cc496b0357eda31bef5fbdefed74590d3fac8';
-const ASSETS=["/kovo/","/kovo/index.html","/kovo/icon.svg","/kovo/manifest.json","/kovo/assets/index-CnFl8Pfu.js","/kovo/assets/index-D-wpSXi7.css"];
+const CACHE='kovo-shell-ec39da5208dfa9a738402ca5d792f131df6b14dc';
+const ASSETS=["/kovo/","/kovo/index.html","/kovo/icon.svg","/kovo/manifest.json","/kovo/assets/index-CLZawMJy.js","/kovo/assets/index-KAMF173d.css"];
 self.addEventListener('install',event=>event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(ASSETS))));
 self.addEventListener('activate',event=>event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(key=>key.startsWith('kovo-shell-')&&key!==CACHE).map(key=>caches.delete(key)))).then(()=>self.clients.claim())));
 self.addEventListener('fetch',event=>{
