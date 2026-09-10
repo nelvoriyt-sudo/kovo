@@ -5,12 +5,17 @@ import {
   Settings as SettingsIcon, Plus, Trash2, Pencil, Check, X, TrendingUp, TrendingDown, ChevronRight
 } from "lucide-react";
 
-const STORAGE_KEY = "kovo-finance-data-v2";
+import { todayISO } from './lib/planning.js';
+import { upcomingBills } from './lib/finance.js';
+import { toCents, sumMoney } from './lib/money.js';
+import { downloadBackup } from './lib/backup.js';
+import IncomePlan from './components/IncomePlan.jsx';
+import CoachHome from './components/CoachHome.jsx';
 
-const todayISO = () => new Date().toISOString().slice(0, 10);
+
 const monthKey = (iso) => iso.slice(0, 7);
 const fmt = (n, currency = "USD", opts = {}) =>
-  new Intl.NumberFormat("en-US", { style: "currency", currency, maximumFractionDigits: 0, ...opts }).format(n || 0);
+  new Intl.NumberFormat("en-US", { style: "currency", currency, minimumFractionDigits: opts.maximumFractionDigits ?? 2, maximumFractionDigits: 2, ...opts }).format(n || 0);
 const fmtSigned = (n, currency = "USD") => (n < 0 ? "-" : "+") + fmt(Math.abs(n), currency);
 const uid = () =>
   typeof crypto !== "undefined" && crypto.randomUUID
@@ -56,7 +61,7 @@ function withSnapshot(data) {
   const today = todayISO();
   const history = [...data.history];
   if (history.length && history[history.length - 1].date === today) {
-    history[history.length - 1].value = netWorth;
+    history[history.length - 1] = { ...history[history.length - 1], value: netWorth };
   } else {
     history.push({ date: today, value: netWorth });
   }
@@ -136,59 +141,6 @@ const seedData = () => {
   return { accounts, investments, transactions, budgets, bills, goals, history, settings, categories: DEFAULT_CATEGORIES };
 };
 
-function useKovoData() {
-  const [data, setData] = useState(() => {
-    try {
-      const raw = window.localStorage.getItem(STORAGE_KEY);
-      if (raw) {
-        const parsed = JSON.parse(raw);
-        return {
-          investments: [], settings: { accentTheme: "blue", currency: "USD" }, categories: DEFAULT_CATEGORIES,
-          ...parsed,
-        };
-      }
-    } catch (e) { /* fall through to seed data */ }
-    return seedData();
-  });
-  const saveTimer = useRef(null);
-
-  useEffect(() => {
-    if (saveTimer.current) clearTimeout(saveTimer.current);
-    saveTimer.current = setTimeout(() => {
-      try {
-        window.localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-      } catch (e) { /* storage unavailable — data stays in memory for this session */ }
-    }, 300);
-    return () => clearTimeout(saveTimer.current);
-  }, [data]);
-
-  // Pick up transactions logged from outside this component (e.g. the
-  // Quick Tip Logger) so they land in this component's live state exactly
-  // once, instead of only existing in localStorage until a full reload.
-  useEffect(() => {
-    const onTipAdded = (event) => {
-      const { transaction, tipEntry } = event.detail || {};
-      if (!transaction) return;
-
-      setData((current) => {
-        if (current.transactions.some((t) => t.id === transaction.id)) return current;
-
-        const tipEntries = current.tipEntries || [];
-        return {
-          ...current,
-          transactions: [transaction, ...current.transactions],
-          tipEntries: tipEntry ? [tipEntry, ...tipEntries] : tipEntries,
-        };
-      });
-    };
-
-    window.addEventListener("kovo-tip-added", onTipAdded);
-    return () => window.removeEventListener("kovo-tip-added", onTipAdded);
-  }, [setData]);
-
-  return [data, setData, "ready"];
-}
-
 /* ---------- shared bits ---------- */
 
 function Sparkline({ history }) {
@@ -221,7 +173,7 @@ function IconBtn({ onClick, title, children }) {
 }
 
 function TextField({ value, onChange, placeholder, type = "text", style }) {
-  return <input className="field" value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} type={type} style={style} />;
+  return <input className="field" value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} type={type} step={type === "number" ? "0.01" : undefined} aria-label={placeholder || type} style={style} />;
 }
 
 function SelectField({ value, onChange, options, style, labels }) {
@@ -239,7 +191,7 @@ function Overview({ data, netWorth, monthTx, spentByCategory, setPage, cur }) {
   const expenses = monthTx.filter((t) => t.amount < 0).reduce((s, t) => s + Math.abs(t.amount), 0);
   const maxFlow = Math.max(income, expenses, 1);
   const delta = data.history.length > 1 ? netWorth - data.history[data.history.length - 2].value : 0;
-  const upcoming = [...data.bills].sort((a, b) => a.dueDay - b.dueDay).slice(0, 4);
+  const upcoming = upcomingBills(data.bills);
   const tightBudgets = data.budgets
     .map((b) => ({ ...b, spent: spentByCategory[b.category] || 0 }))
     .sort((a, b) => (b.spent / b.limit) - (a.spent / a.limit))
@@ -548,6 +500,7 @@ function Budget({ data, setData, spentByCategory, cur }) {
   return (
     <div className="page">
       <div className="page-header"><h1>Budget</h1><button className="btn-primary" onClick={() => setAdding((v) => !v)}><Plus size={14} /> Add category</button></div>
+      <IncomePlan data={data} setData={setData} cur={cur}/>
       {adding && (
         <div className="panel add-form">
           <SelectField value={draft.category} onChange={(v) => setDraft({ ...draft, category: v })} options={available.length ? available : data.categories} style={{ flex: 1 }} />
@@ -588,15 +541,19 @@ function Ledger({ data, setData, cur }) {
   const [draft, setDraft] = useState({ date: todayISO(), description: "", category: data.categories[0], amount: "" });
   const [query, setQuery] = useState("");
 
-  const addTx = () => {
+  const addTx = async () => {
     if (!draft.description.trim() || draft.amount === "") return;
-    const tx = { id: uid(), date: draft.date, description: draft.description.trim(), category: draft.category, amount: Number(draft.amount) };
-    setData({ ...data, transactions: [tx, ...data.transactions] });
+    const tx = { id: uid(), date: draft.date, description: draft.description.trim(), category: draft.category, amount: Number(draft.amount), timeZone: data.settings.timeZone || Intl.DateTimeFormat().resolvedOptions().timeZone };
+    if (!await setData({ ...data, transactions: [tx, ...data.transactions] })) return;
     setDraft({ date: todayISO(), description: "", category: draft.category, amount: "" });
     setAdding(false);
   };
 
-  const removeTx = (id) => setData({ ...data, transactions: data.transactions.filter((t) => t.id !== id) });
+  const removeTx = (id) => {
+    const transaction = data.transactions.find(item => item.id === id);
+    const linked = transaction?.source === 'tip-entry' ? transaction.sourceId : null;
+    setData({ ...data, transactions: data.transactions.filter(item => item.id !== id && (!linked || item.sourceId !== linked)), tipEntries: (data.tipEntries || []).filter(item => item.id !== linked && item.transactionId !== id && !(item.transactionIds || []).includes(id)) });
+  };
 
   const filtered = useMemo(() => {
     const list = [...data.transactions].sort((a, b) => (a.date < b.date ? 1 : -1));
@@ -687,7 +644,7 @@ function Goals({ data, setData, cur }) {
     setAdding(false);
   };
   const removeGoal = (id) => setData({ ...data, goals: data.goals.filter((g) => g.id !== id) });
-  const contribute = (id, amt) => setData({ ...data, goals: data.goals.map((g) => (g.id === id ? { ...g, saved: Math.max(0, g.saved + amt) } : g)) });
+  const contribute = (id, amt) => setData({ ...data, goals: data.goals.map((g) => (g.id === id ? { ...g, saved: Math.max(0, sumMoney([g.saved, amt])) } : g)) });
 
   return (
     <div className="page">
@@ -737,7 +694,7 @@ function Settings({ data, setData }) {
   };
   const removeCategory = (c) => setData({ ...data, categories: data.categories.filter((x) => x !== c) });
 
-  const doReset = () => { setData(seedData()); setConfirmingReset(false); };
+  const doReset = () => { downloadBackup(data); setData(seedData()); setConfirmingReset(false); };
 
   return (
     <div className="page">
@@ -776,8 +733,8 @@ function Settings({ data, setData }) {
       </div>
 
       <div className="panel">
-        <div className="panel-title">Data</div>
-        <div className="text-muted small" style={{ marginBottom: 12 }}>Kovo saves everything automatically to your private storage — nothing leaves this chat.</div>
+        <div className="panel-title">Data</div><button className="btn-primary" onClick={() => downloadBackup(data)}>Export backup</button>
+        <div className="text-muted small" style={{ marginBottom: 12 }}>Signed-in data syncs to your private Supabase account. Offline changes are saved on this device until sync succeeds. Export a backup before clearing browser storage.</div>
         {!confirmingReset ? (
           <button className="btn-primary" onClick={() => setConfirmingReset(true)}>Reset to sample data</button>
         ) : (
@@ -805,9 +762,13 @@ const NAV = [
   { id: "settings", label: "Settings", icon: SettingsIcon },
 ];
 
-export default function App() {
-  const [data, setData, status] = useKovoData();
+export default function App({ data, setData }) {
   const [page, setPage] = useState("overview");
+  useEffect(() => {
+    const openPage = event => setPage(event.detail.page);
+    window.addEventListener('kovo-open-page', openPage);
+    return () => window.removeEventListener('kovo-open-page', openPage);
+  }, []);
 
   const netWorth = useMemo(() => (data ? computeNetWorth(data) : 0), [data]);
   const monthTx = useMemo(() => {
@@ -817,12 +778,12 @@ export default function App() {
   }, [data]);
   const spentByCategory = useMemo(() => {
     const out = {};
-    monthTx.forEach((t) => { if (t.amount < 0) out[t.category] = (out[t.category] || 0) + Math.abs(t.amount); });
+    monthTx.forEach((t) => { if (t.amount < 0 && t.category !== "Transfer") out[t.category] = sumMoney([out[t.category] || 0, Math.abs(t.amount)]); });
     return out;
   }, [monthTx]);
 
   const cur = data?.settings?.currency || "USD";
-  const accentHex = ACCENTS[data?.settings?.accentTheme || "blue"].hex;
+  const accentHex = (ACCENTS[data?.settings?.accentTheme] || ACCENTS.blue).hex;
 
   return (
     <div className="kovo-app" style={{ "--accent": accentHex }}>
@@ -997,7 +958,7 @@ export default function App() {
 
       <div className="main">
         {page === "overview" ? (
-          <Overview data={data} netWorth={netWorth} monthTx={monthTx} spentByCategory={spentByCategory} setPage={setPage} cur={cur} />
+          <CoachHome data={data} setData={setData} setPage={setPage}><Overview data={data} netWorth={netWorth} monthTx={monthTx} spentByCategory={spentByCategory} setPage={setPage} cur={cur} /></CoachHome>
         ) : page === "accounts" ? (
           <Accounts data={data} setData={setData} cur={cur} />
         ) : page === "investments" ? (

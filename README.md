@@ -1,63 +1,41 @@
 # Kovo
 
-A personal finance tracker — net worth trend, budget vs. actual, a transaction ledger, recurring bills, investments, and savings goals. All data is stored in your browser's `localStorage`, so it's private to your device and browser — nothing is sent to a server.
+Kovo is a manual personal finance app for variable income. The existing green interface, logo, accounts, investments, ledger, bills, budgets, and goals remain. Home shows one prioritized, deterministic insight; the detailed overview is expandable.
 
-## Run it locally
+Live site: https://nelvoriyt-sudo.github.io/kovo/
 
-```bash
-npm install
+## Features
+
+- Cash/card tips, card availability dates, overnight shifts and saved IANA time zones.
+- Integer-cent money calculations, percentage tip-outs and equal pool splits with explicit remainder allocation.
+- Daily, weekly, biweekly and manually scheduled irregular income planning. Conservative estimates include zero-income completed periods and exclude incomplete periods.
+- Account-scoped durable offline entries, retry-safe backend synchronization, and explicit review when two devices edit the same record.
+- Email/password sign-in, verification resend, recovery-link completion, backup export and self-service account deletion.
+- Goals and saved rule-based coach history. No external AI, bank connection, tax estimate or money movement is enabled.
+
+## Data and offline use
+
+Signed-in accounts use Supabase as the authoritative store. IndexedDB retains an account-specific cache and pending operations. Local-only mode stays on that browser until explicitly imported into an account. Clearing browser storage can destroy unsynchronized entries; export a backup first.
+
+Existing cloud snapshots are migrated on first use without deleting the original. Previous unscoped device data is offered for explicit import from the account panel. Import adds absent records and preserves differing versions in a recovery archive rather than replacing current cloud entries. Only import data belonging to the signed-in account.
+
+Open the site online once and check the account panel for **Offline app ready** before relying on offline startup. Updates activate after older tabs close. The service worker caches app files only; it does not cache authentication or financial HTTP responses.
+
+## Development and deployment
+
+Use Node 24 and the npm lockfile:
+
+```sh
+npm ci
+npm test
+npm run build
 npm run dev
 ```
 
-Opens at `http://localhost:5173`.
+The main-branch workflow runs tests and publishes the production build to the existing gh-pages branch. The base path is `/kovo/`. `version.json` identifies the source commit served by Pages. Database migrations and the account deletion function are separate backend releases; see [architecture and release notes](docs/release-notes.md).
 
-## Deploy to Vercel (easiest)
+## Current release limits
 
-This is the simplest option and gives you a real HTTPS URL you can open and "Add to Home Screen" on your phone.
+Custom SMTP is not configured: Supabase's default email service restricts recipients and delivery volume. Ordinary-user verification and reset email delivery requires a sender/provider setup and an actual delivery test.
 
-1. Install the CLI once: `npm install -g vercel`
-2. From this folder, run: `vercel`
-3. Follow the prompts (framework preset: **Vite**, build command `npm run build`, output directory `dist`)
-4. Vercel gives you a URL like `kovo-yourname.vercel.app`
-
-Or skip the CLI: push this folder to a GitHub repo, go to [vercel.com/new](https://vercel.com/new), import the repo, and it auto-detects Vite.
-
-## Deploy to GitHub Pages
-
-1. Create a new GitHub repo and push this folder to it:
-   ```bash
-   git init
-   git add .
-   git commit -m "Initial commit"
-   git branch -M main
-   git remote add origin https://github.com/YOUR_USERNAME/YOUR_REPO.git
-   git push -u origin main
-   ```
-2. Install the deploy dependency (already listed in `package.json`, just needs installing):
-   ```bash
-   npm install
-   ```
-3. Deploy:
-   ```bash
-   npm run deploy
-   ```
-   This builds the app and pushes `dist/` to a `gh-pages` branch.
-4. In your repo on GitHub: **Settings → Pages → Source**, select the `gh-pages` branch, save.
-5. Your app will be live at `https://YOUR_USERNAME.github.io/YOUR_REPO/`
-
-**Note:** `vite.config.js` uses a relative base path (`base: "./"`), so it works correctly whether it's served from a domain root (Vercel) or a subpath (GitHub Pages project site) — you shouldn't need to change anything.
-
-## Using it on your phone
-
-Once deployed, open the URL in Safari (iOS) or Chrome (Android) on your phone, then:
-- **iOS Safari:** tap Share → "Add to Home Screen"
-- **Android Chrome:** tap the ⋮ menu → "Add to Home screen" / "Install app"
-
-It'll launch full-screen like a native app, using the Kovo icon.
-
-## About your data
-
-- Everything (accounts, transactions, budgets, bills, goals, investments) is saved to `localStorage` in whatever browser you use it in.
-- This means data does **not** sync across devices or browsers — if you use it on your phone and laptop, they'll have separate data.
-- There's no account connection to real banks (see the main conversation for why — it needs a backend server and a Plaid production account). Everything here is entered manually.
-- Clearing your browser's site data, or using a private/incognito window, will lose your data. Consider exporting a backup periodically (Settings → Reset shows you the shape of the data if you want to build an export button yourself, or ask me to add one).
+Browser caches and remembered sessions do not have an application-level encryption layer. Supabase transport uses HTTPS and database access is owner-restricted, but this is not a blanket security or regulatory certification. Do not connect bank accounts or treat this MVP as commercially cleared. See the release notes for privacy, retention, cost and remaining prerequisites.

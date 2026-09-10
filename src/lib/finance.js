@@ -1,4 +1,5 @@
-export const todayISO = () => new Date().toISOString().slice(0, 10);
+import { todayISO, addDays, dateNumber } from './planning.js';
+export { todayISO };
 export const monthKey = (iso) => iso.slice(0, 7);
 
 export const fmt = (n, currency = "USD", opts = {}) =>
@@ -65,10 +66,13 @@ export function budgetPace(limit, spent, iso = todayISO()) {
 }
 
 export function upcomingBills(bills, iso = todayISO(), limit = 4) {
-  const today = new Date(`${iso}T12:00:00`);
-  const day = today.getDate();
   return [...bills]
-    .map((bill) => ({ ...bill, daysUntil: bill.dueDay >= day ? bill.dueDay - day : bill.dueDay + 31 - day }))
+    .map((bill) => {
+      const year=Number(iso.slice(0,4)),month=Number(iso.slice(5,7))-1;
+      const dueFor=offset=>{const date=new Date(Date.UTC(year,month+offset,1));const days=new Date(Date.UTC(date.getUTCFullYear(),date.getUTCMonth()+1,0)).getUTCDate();return `${date.toISOString().slice(0,7)}-${String(Math.min(bill.dueDay,days)).padStart(2,'0')}`;};
+      let dueDate=dueFor(0);if(dueDate<iso)dueDate=dueFor(1);
+      return {...bill,dueDate,daysUntil:dateNumber(dueDate)-dateNumber(iso)};
+    })
     .sort((a, b) => a.daysUntil - b.daysUntil)
     .slice(0, limit);
 }

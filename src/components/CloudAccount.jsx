@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { requestPasswordReset, signIn, signUp } from "../lib/cloud.js";
+import { requestPasswordReset, signIn, signUp, resendVerification } from "../lib/cloud.js";
 
 const recoveryButtonStyle = {
   background: "transparent",
@@ -140,6 +140,7 @@ export default function CloudAccount({ session, syncStatus, onSignedIn, onSignOu
           {busy ? "One moment…" : mode === "signup" ? "Create account" : "Sign in"}
         </button>
       </form>
+      <button style={recoveryButtonStyle} disabled={busy} type="button" onClick={async()=>{if(!normalizedEmail){setMessage('Enter your email first.');return;}setBusy(true);try{await resendVerification(normalizedEmail);setMessage('Verification email requested. Check your inbox and spam folder.');}catch(error){setMessage(error.message);}finally{setBusy(false);}}}>Resend verification email</button>
       {mode === "signin" && (
         <button style={recoveryButtonStyle} disabled={busy} onClick={sendPasswordReset} type="button">
           Forgot password?
@@ -157,7 +158,7 @@ export default function CloudAccount({ session, syncStatus, onSignedIn, onSignOu
           <button style={localModeButtonStyle} disabled={busy} onClick={onContinueLocally} type="button">
             Continue on this device for now
           </button>
-          <p style={localModeCopyStyle}>This lets you test Kovo while email delivery is being finished. Cloud sync turns on after sign-in.</p>
+          <p style={localModeCopyStyle}>Entries stay on this device until you sign in and import them. Keep a backup before clearing browser storage.</p>
         </div>
       )}
       <div className="auth-fineprint">Your login stays securely remembered on this device until you sign out.</div>
