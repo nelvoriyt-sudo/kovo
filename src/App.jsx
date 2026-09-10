@@ -11,6 +11,8 @@ import { toCents, sumMoney } from './lib/money.js';
 import { downloadBackup } from './lib/backup.js';
 import IncomePlan from './components/IncomePlan.jsx';
 import CoachHome from './components/CoachHome.jsx';
+import AppearanceSettings from './components/AppearanceSettings.jsx';
+import Navigation from './components/Navigation.jsx';
 
 
 const monthKey = (iso) => iso.slice(0, 7);
@@ -38,15 +40,10 @@ const DEFAULT_CATEGORIES = [
 const ASSET_CLASSES = ["Stocks", "Bonds", "Crypto", "Cash", "Real estate", "Other"];
 const ASSET_COLORS = {
   Stocks: "#6FA2D6", Bonds: "#4FB3A9", Crypto: "#9C8CD6",
-  Cash: "#8B92A0", "Real estate": "#D6A63F", Other: "#D6789B",
+  Cash: "#8B92A0", "Real estate": "var(--gold)", Other: "#D6789B",
 };
 
-const ACCENTS = {
-  blue: { label: "Dusty blue", hex: "#6FA2D6" },
-  moss: { label: "Moss", hex: "#6FA97C" },
-  amber: { label: "Amber", hex: "#D6A63F" },
-  rose: { label: "Rose", hex: "#D6789B" },
-};
+
 
 function computeNetWorth(data) {
   const acc = data.accounts.reduce((s, a) => s + a.balance, 0);
@@ -151,12 +148,12 @@ function Sparkline({ history }) {
         <LineChart data={history} margin={{ top: 4, right: 4, bottom: 0, left: 4 }}>
           <YAxis hide domain={["dataMin - 500", "dataMax + 500"]} />
           <Tooltip
-            contentStyle={{ background: "#1A2029", border: "1px solid rgba(242,240,234,0.12)", borderRadius: 6, fontFamily: "Manrope" }}
+            contentStyle={{ background: "var(--surface)", color: "var(--text)", border: "1px solid var(--hairline)", borderRadius: 8, fontFamily: "inherit" }}
             labelStyle={{ display: "none" }}
             formatter={(v) => [fmt(v), "Net worth"]}
           />
-          <Line type="monotone" dataKey="value" stroke={positive ? "#6FA97C" : "#D2704F"} strokeWidth={2.5} dot={false}
-            activeDot={{ r: 4, fill: positive ? "#6FA97C" : "#D2704F" }} />
+          <Line type="monotone" dataKey="value" stroke={positive ? "var(--moss)" : "var(--clay)"} strokeWidth={2.5} dot={false}
+            activeDot={{ r: 4, fill: positive ? "var(--moss)" : "var(--clay)" }} />
         </LineChart>
       </ResponsiveContainer>
     </div>
@@ -164,7 +161,7 @@ function Sparkline({ history }) {
 }
 
 function Meter({ pct, tone }) {
-  const color = tone === "over" ? "#D2704F" : tone === "close" ? "#D6A63F" : "#6FA97C";
+  const color = tone === "over" ? "var(--clay)" : tone === "close" ? "var(--gold)" : "var(--moss)";
   return <div className="meter-track"><div className="meter-fill" style={{ width: `${Math.min(100, pct)}%`, background: color }} /></div>;
 }
 
@@ -173,14 +170,16 @@ function IconBtn({ onClick, title, children }) {
 }
 
 function TextField({ value, onChange, placeholder, type = "text", style }) {
-  return <input className="field" value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} type={type} step={type === "number" ? "0.01" : undefined} aria-label={placeholder || type} style={style} />;
+  const label = placeholder === '-42.50' ? 'Amount' : placeholder || (type === 'date' ? 'Date' : type === 'number' ? 'Balance' : 'Name');
+  return <label className="input-group" style={style}><span>{label}</span><input className="field" value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} type={type} step={type === "number" ? "0.01" : undefined}/></label>;
 }
 
 function SelectField({ value, onChange, options, style, labels }) {
+  const label = labels ? 'Account type' : options.includes('USD') ? 'Display currency' : options.includes('Stocks') ? 'Asset class' : 'Category';
   return (
-    <select className="field" value={value} onChange={(e) => onChange(e.target.value)} style={style}>
+    <label className="input-group" style={style}><span>{label}</span><select className="field" value={value} onChange={(e) => onChange(e.target.value)}>
       {options.map((o) => <option key={o} value={o}>{labels ? labels[o] : o}</option>)}
-    </select>
+    </select></label>
   );
 }
 
@@ -202,7 +201,7 @@ function Overview({ data, netWorth, monthTx, spentByCategory, setPage, cur }) {
       <div className="hero-panel">
         <div className="hero-label">Net worth</div>
         <div className="hero-value">{fmt(netWorth, cur, { maximumFractionDigits: 0 })}</div>
-        <div className="hero-delta" style={{ color: delta >= 0 ? "#6FA97C" : "#D2704F" }}>
+        <div className="hero-delta" style={{ color: delta >= 0 ? "var(--moss)" : "var(--clay)" }}>
           {delta >= 0 ? <TrendingUp size={14} /> : <TrendingDown size={14} />}
           {fmtSigned(delta, cur)} since last update
         </div>
@@ -214,17 +213,17 @@ function Overview({ data, netWorth, monthTx, spentByCategory, setPage, cur }) {
           <div className="panel-title">Cash flow this month</div>
           <div className="flow-row">
             <span className="flow-label">Income</span>
-            <div className="flow-track"><div className="flow-fill" style={{ width: `${(income / maxFlow) * 100}%`, background: "#6FA97C" }} /></div>
+            <div className="flow-track"><div className="flow-fill" style={{ width: `${(income / maxFlow) * 100}%`, background: "var(--moss)" }} /></div>
             <span className="flow-value">{fmt(income, cur)}</span>
           </div>
           <div className="flow-row">
             <span className="flow-label">Spending</span>
-            <div className="flow-track"><div className="flow-fill" style={{ width: `${(expenses / maxFlow) * 100}%`, background: "#D2704F" }} /></div>
+            <div className="flow-track"><div className="flow-fill" style={{ width: `${(expenses / maxFlow) * 100}%`, background: "var(--clay)" }} /></div>
             <span className="flow-value">{fmt(expenses, cur)}</span>
           </div>
           <div className="flow-net">
             <span>Left over</span>
-            <span style={{ color: income - expenses >= 0 ? "#6FA97C" : "#D2704F" }}>{fmtSigned(income - expenses, cur)}</span>
+            <span style={{ color: income - expenses >= 0 ? "var(--moss)" : "var(--clay)" }}>{fmtSigned(income - expenses, cur)}</span>
           </div>
         </div>
 
@@ -342,7 +341,7 @@ function Accounts({ data, setData, cur }) {
           ) : (
             <>
               <div className="account-name"><div>{a.name}</div><div className="text-muted small">{typeLabels[a.type]}</div></div>
-              <span className="mono-num" style={{ color: a.balance < 0 ? "#D2704F" : undefined }}>{fmt(a.balance, cur)}</span>
+              <span className="mono-num" style={{ color: a.balance < 0 ? "var(--clay)" : undefined }}>{fmt(a.balance, cur)}</span>
               <IconBtn title="Edit" onClick={() => startEdit(a)}><Pencil size={13} /></IconBtn>
               <IconBtn title="Remove" onClick={() => removeAccount(a.id)}><Trash2 size={13} /></IconBtn>
             </>
@@ -564,7 +563,7 @@ function Ledger({ data, setData, cur }) {
 
   return (
     <div className="page">
-      <div className="page-header"><h1>Ledger</h1><button className="btn-primary" onClick={() => setAdding((v) => !v)}><Plus size={14} /> Add transaction</button></div>
+      <div className="page-header"><h1>Transactions</h1><button className="btn-primary" onClick={() => setAdding((v) => !v)}><Plus size={14} /> Add transaction</button></div>
       {adding && (
         <div className="panel add-form wrap">
           <TextField value={draft.date} onChange={(v) => setDraft({ ...draft, date: v })} type="date" style={{ width: 150 }} />
@@ -581,7 +580,7 @@ function Ledger({ data, setData, cur }) {
           <div key={t.id} className="tx-row">
             <span className="text-muted mono-num small">{t.date.slice(5)}</span>
             <div className="tx-desc"><div>{t.description}</div><div className="text-muted small">{t.category}</div></div>
-            <span className="mono-num" style={{ color: t.amount < 0 ? undefined : "#6FA97C" }}>{fmtSigned(t.amount, cur)}</span>
+            <span className="mono-num" style={{ color: t.amount < 0 ? undefined : "var(--moss)" }}>{fmtSigned(t.amount, cur)}</span>
             <IconBtn title="Remove" onClick={() => removeTx(t.id)}><Trash2 size={13} /></IconBtn>
           </div>
         ))}
@@ -685,7 +684,7 @@ function Settings({ data, setData }) {
   const [newCategory, setNewCategory] = useState("");
   const [confirmingReset, setConfirmingReset] = useState(false);
 
-  const setAccent = (key) => setData({ ...data, settings: { ...data.settings, accentTheme: key } });
+  const setAppearance = (key, value) => setData({ ...data, settings: { ...data.settings, [key]: value } });
   const setCurrency = (v) => setData({ ...data, settings: { ...data.settings, currency: v } });
   const addCategory = () => {
     if (!newCategory.trim() || data.categories.includes(newCategory.trim())) return;
@@ -700,19 +699,7 @@ function Settings({ data, setData }) {
     <div className="page">
       <div className="page-header"><h1>Settings</h1></div>
 
-      <div className="panel">
-        <div className="panel-title">Accent color</div>
-        <div className="text-muted small" style={{ marginBottom: 12 }}>Used for navigation, links and buttons. Growth, debt and goal colors stay fixed everywhere.</div>
-        <div className="accent-grid">
-          {Object.entries(ACCENTS).map(([key, a]) => (
-            <button key={key} className={`accent-swatch ${data.settings.accentTheme === key ? "active" : ""}`} onClick={() => setAccent(key)}>
-              <span className="accent-dot" style={{ background: a.hex }} />
-              {a.label}
-              {data.settings.accentTheme === key && <Check size={13} />}
-            </button>
-          ))}
-        </div>
-      </div>
+      <AppearanceSettings settings={data.settings} onChange={setAppearance}/>
 
       <div className="panel">
         <div className="panel-title">Currency</div>
@@ -739,7 +726,7 @@ function Settings({ data, setData }) {
           <button className="btn-primary" onClick={() => setConfirmingReset(true)}>Reset to sample data</button>
         ) : (
           <div className="add-form">
-            <span className="small" style={{ color: "#D2704F" }}>This clears everything you've entered. Are you sure?</span>
+            <span className="small" style={{ color: "var(--clay)" }}>This clears everything you've entered. Are you sure?</span>
             <button className="btn-primary" onClick={doReset}>Yes, reset</button>
             <button className="btn-primary" onClick={() => setConfirmingReset(false)}>Cancel</button>
           </div>
@@ -751,16 +738,7 @@ function Settings({ data, setData }) {
 
 /* ---------- App ---------- */
 
-const NAV = [
-  { id: "overview", label: "Overview", icon: LayoutGrid },
-  { id: "accounts", label: "Accounts", icon: Landmark },
-  { id: "investments", label: "Invest", icon: PieChart },
-  { id: "budget", label: "Budget", icon: Wallet },
-  { id: "ledger", label: "Ledger", icon: Receipt },
-  { id: "bills", label: "Bills", icon: CalendarClock },
-  { id: "goals", label: "Goals", icon: Target },
-  { id: "settings", label: "Settings", icon: SettingsIcon },
-];
+
 
 export default function App({ data, setData }) {
   const [page, setPage] = useState("overview");
@@ -783,180 +761,15 @@ export default function App({ data, setData }) {
   }, [monthTx]);
 
   const cur = data?.settings?.currency || "USD";
-  const accentHex = (ACCENTS[data?.settings?.accentTheme] || ACCENTS.blue).hex;
 
   return (
-    <div className="kovo-app" style={{ "--accent": accentHex }}>
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Manrope:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap');
+    <div className="kovo-app">
 
-        .kovo-app {
-          --ink: #12151B;
-          --surface: #1A2029;
-          --surface-raised: #212836;
-          --text: #F2F0EA;
-          --text-secondary: #B7BCC7;
-          --text-muted: #7C8391;
-          --hairline: rgba(242,240,234,0.08);
-          --moss: #6FA97C;
-          --clay: #D2704F;
-          --gold: #D6A63F;
 
-          background: var(--ink);
-          color: var(--text);
-          font-family: 'Manrope', sans-serif;
-          display: flex;
-          width: 100%;
-          min-height: 100vh;
-        }
-        .kovo-app * { box-sizing: border-box; }
-        .kovo-app ::selection { background: rgba(111,169,124,0.3); }
+      <Navigation page={page} setPage={setPage}/>
 
-        .sidebar {
-          width: 208px;
-          flex-shrink: 0;
-          background: #0F1218;
-          border-right: 1px solid var(--hairline);
-          padding: 24px 14px;
-          display: flex;
-          flex-direction: column;
-        }
-        .brand {
-          font-family: 'Fraunces', serif;
-          font-size: 21px;
-          font-weight: 600;
-          padding: 0 10px 22px;
-          border-bottom: 1px solid var(--hairline);
-          margin-bottom: 18px;
-          display: flex;
-          align-items: baseline;
-          gap: 5px;
-        }
-        .brand-dot { color: var(--accent); }
-        .nav-item {
-          display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 8px;
-          cursor: pointer; font-size: 13.5px; color: var(--text-secondary); margin-bottom: 2px;
-          border: none; background: none; width: 100%; text-align: left; font-family: 'Manrope', sans-serif; font-weight: 500;
-        }
-        .nav-item:hover { background: rgba(242,240,234,0.04); color: var(--text); }
-        .nav-item.active { background: var(--surface); color: var(--text); }
-        .nav-item.active svg { color: var(--accent); }
-        .sidebar-foot { margin-top: auto; font-size: 11.5px; color: var(--text-muted); padding: 10px; border-top: 1px solid var(--hairline); line-height: 1.5; }
-
-        .main { flex: 1; padding: 28px 32px 48px; min-width: 0; }
-        .page { display: flex; flex-direction: column; gap: 18px; max-width: 880px; }
-        .page-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; flex-wrap: wrap; gap: 10px; }
-        .page-header h1 { font-family: 'Fraunces', serif; font-weight: 500; font-size: 23px; margin: 0; }
-
-        .hero-panel { background: var(--surface); border: 1px solid var(--hairline); border-radius: 14px; padding: 22px 26px 14px; }
-        .hero-label { font-size: 13px; color: var(--text-muted); margin-bottom: 6px; font-weight: 500; }
-        .hero-value { font-family: 'Fraunces', serif; font-weight: 500; font-size: 40px; font-variant-numeric: tabular-nums; }
-        .hero-delta { display: flex; align-items: center; gap: 5px; font-size: 12.5px; margin: 6px 0 4px; font-weight: 500; }
-
-        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-        .panel { background: var(--surface); border: 1px solid var(--hairline); border-radius: 12px; padding: 18px 20px; }
-        .panel-title { font-size: 13.5px; color: var(--text); font-weight: 600; margin-bottom: 12px; }
-        .panel-title-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; gap: 8px; flex-wrap: wrap; }
-        .panel-title-row .panel-title { margin-bottom: 0; }
-        .link-btn { background: none; border: none; color: var(--text-muted); font-size: 12px; display: flex; align-items: center; gap: 2px; cursor: pointer; font-family: inherit; font-weight: 500; padding: 0; }
-        .link-btn:hover { color: var(--accent); }
-
-        .flow-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
-        .flow-label { width: 66px; font-size: 12.5px; color: var(--text-secondary); }
-        .flow-track { flex: 1; height: 7px; background: rgba(242,240,234,0.06); border-radius: 4px; overflow: hidden; }
-        .flow-fill { height: 100%; border-radius: 4px; }
-        .flow-value { width: 78px; text-align: right; font-size: 12.5px; font-family: 'IBM Plex Mono', monospace; }
-        .flow-net { display: flex; justify-content: space-between; font-size: 13px; font-weight: 500; padding-top: 10px; margin-top: 4px; border-top: 1px solid var(--hairline); }
-
-        .budget-mini { margin-bottom: 12px; } .budget-mini:last-child { margin-bottom: 0; }
-        .budget-mini-top { display: flex; justify-content: space-between; font-size: 12.5px; margin-bottom: 5px; }
-        .meter-track { height: 6px; background: rgba(242,240,234,0.07); border-radius: 4px; overflow: hidden; }
-        .meter-fill { height: 100%; border-radius: 4px; transition: width 0.3s; }
-
-        .bill-mini { display: flex; align-items: center; gap: 12px; padding: 9px 0; border-bottom: 1px solid var(--hairline); }
-        .bill-mini:last-child { border-bottom: none; }
-        .bill-day { width: 32px; height: 32px; border-radius: 8px; background: var(--surface-raised); display: flex; align-items: center; justify-content: center; font-size: 11px; color: var(--gold); flex-shrink: 0; font-family: 'IBM Plex Mono', monospace; }
-        .bill-mini-info { flex: 1; font-size: 13.5px; }
-        .small { font-size: 11.5px; }
-        .text-muted { color: var(--text-muted); }
-        .mono-num { font-variant-numeric: tabular-nums; font-size: 13.5px; font-family: 'IBM Plex Mono', monospace; }
-
-        .btn-primary { background: var(--surface-raised); border: 1px solid var(--hairline); color: var(--text); padding: 9px 15px; border-radius: 8px; font-size: 12.5px; cursor: pointer; display: flex; align-items: center; gap: 6px; font-family: 'Manrope', sans-serif; font-weight: 600; white-space: nowrap; }
-        .btn-primary:hover { border-color: var(--accent); color: var(--accent); }
-
-        .icon-btn { background: none; border: none; color: var(--text-muted); cursor: pointer; padding: 5px; display: flex; align-items: center; border-radius: 6px; }
-        .icon-btn:hover { color: var(--text); background: rgba(242,240,234,0.06); }
-
-        .field { background: var(--surface-raised); border: 1px solid var(--hairline); color: var(--text); padding: 8px 11px; border-radius: 7px; font-size: 13px; font-family: 'Manrope', sans-serif; outline: none; }
-        .field:focus { border-color: var(--accent); }
-
-        .add-form { display: flex; gap: 10px; align-items: center; }
-        .add-form.wrap { flex-wrap: wrap; }
-
-        .account-row, .tx-row { display: flex; align-items: center; gap: 12px; padding: 11px 0; border-bottom: 1px solid var(--hairline); }
-        .account-row:last-child, .tx-row:last-child { border-bottom: none; }
-        .account-name, .tx-desc { flex: 1; font-size: 13.5px; min-width: 0; }
-
-        .budget-row { padding: 11px 0; border-bottom: 1px solid var(--hairline); } .budget-row:last-child { border-bottom: none; }
-        .budget-row-top { display: flex; justify-content: space-between; align-items: center; font-size: 13.5px; margin-bottom: 6px; }
-        .budget-row-right { display: flex; align-items: center; gap: 6px; }
-        .inline-num { width: 64px; background: none; border: none; border-bottom: 1px dashed var(--hairline); color: var(--text); font-family: 'IBM Plex Mono', monospace; font-size: 12.5px; text-align: right; outline: none; }
-        .over-note { font-size: 11.5px; color: var(--clay); margin-top: 5px; }
-
-        .empty-note { color: var(--text-muted); font-size: 13px; padding: 10px 0; }
-
-        .goal-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-        .goal-card { display: flex; flex-direction: column; gap: 10px; }
-        .goal-amount { font-family: 'Fraunces', serif; font-size: 21px; }
-        .goal-actions { display: flex; gap: 8px; align-items: center; margin-top: 2px; flex-wrap: wrap; }
-        .chip-btn { background: var(--surface-raised); border: 1px solid var(--hairline); color: var(--text-secondary); padding: 5px 10px; border-radius: 14px; font-size: 11.5px; cursor: pointer; font-family: 'Manrope', sans-serif; font-weight: 500; }
-        .chip-btn:hover { border-color: var(--accent); color: var(--accent); }
-        .goal-done { font-size: 11.5px; color: var(--moss); margin-left: auto; font-weight: 600; }
-
-        .alloc-bar { display: flex; height: 12px; border-radius: 6px; overflow: hidden; margin-bottom: 12px; }
-        .alloc-legend { display: flex; flex-wrap: wrap; gap: 12px; }
-        .alloc-legend-item { display: flex; align-items: center; gap: 6px; font-size: 12.5px; }
-        .alloc-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
-
-        .accent-grid { display: flex; gap: 10px; flex-wrap: wrap; }
-        .accent-swatch { display: flex; align-items: center; gap: 8px; background: var(--surface-raised); border: 1px solid var(--hairline); padding: 8px 14px; border-radius: 20px; cursor: pointer; color: var(--text-secondary); font-size: 12.5px; font-family: 'Manrope', sans-serif; font-weight: 500; }
-        .accent-swatch.active { border-color: var(--accent); color: var(--text); }
-        .accent-dot { width: 10px; height: 10px; border-radius: 50%; }
-
-        .category-chips { display: flex; flex-wrap: wrap; gap: 8px; }
-        .cat-chip { display: flex; align-items: center; gap: 6px; background: var(--surface-raised); border: 1px solid var(--hairline); padding: 6px 6px 6px 12px; border-radius: 14px; font-size: 12.5px; }
-        .cat-chip button { background: none; border: none; color: var(--text-muted); cursor: pointer; display: flex; padding: 2px; border-radius: 50%; }
-        .cat-chip button:hover { color: var(--clay); background: rgba(210,112,79,0.12); }
-
-        @media (max-width: 780px) {
-          .kovo-app { flex-direction: column; }
-          .sidebar {
-            width: 100%; flex-direction: row; overflow-x: auto; padding: 8px 6px;
-            border-right: none; border-top: 1px solid var(--hairline);
-            position: fixed; bottom: 0; left: 0; right: 0; z-index: 10;
-            background: #0F1218; padding-bottom: max(8px, env(safe-area-inset-bottom));
-          }
-          .brand, .sidebar-foot { display: none; }
-          .nav-item { flex-direction: column; gap: 4px; font-size: 10px; padding: 8px 12px; flex-shrink: 0; min-width: 60px; border-radius: 10px; }
-          .nav-item.active { background: rgba(242,240,234,0.06); }
-          .main { padding: 20px 16px 100px; }
-          .grid-2, .goal-grid { grid-template-columns: 1fr; }
-          .hero-value { font-size: 32px; }
-        }
-      `}</style>
-
-      <div className="sidebar">
-        <div className="brand">Kovo<span className="brand-dot">.</span></div>
-        {NAV.map((n) => (
-          <button key={n.id} className={`nav-item ${page === n.id ? "active" : ""}`} onClick={() => setPage(n.id)}>
-            <n.icon size={16} />
-            {n.label}
-          </button>
-        ))}
-        <div className="sidebar-foot">Your data is saved automatically and only visible to you.</div>
-      </div>
-
-      <div className="main">
+      <main className="main" id="main-content">
+        <div className="workspace-header"><span>Your workspace</span><time>{new Intl.DateTimeFormat("en-US", { month: "long", day: "numeric", timeZone: data.settings.timeZone }).format(new Date())}</time></div>
         {page === "overview" ? (
           <CoachHome data={data} setData={setData} setPage={setPage}><Overview data={data} netWorth={netWorth} monthTx={monthTx} spentByCategory={spentByCategory} setPage={setPage} cur={cur} /></CoachHome>
         ) : page === "accounts" ? (
@@ -974,7 +787,7 @@ export default function App({ data, setData }) {
         ) : (
           <Settings data={data} setData={setData} />
         )}
-      </div>
+      </main>
     </div>
   );
 }

@@ -11,33 +11,6 @@ const previewCents = (value) => {
   }
 };
 
-function TipLoggerStyles() {
-  return (
-    <style>{`
-      .tip-capture { position: fixed; right: 18px; bottom: 18px; z-index: 60; font-family: Manrope, system-ui, sans-serif; }
-      .tip-fab { min-width: 96px; height: 46px; border: 0; border-radius: 999px; background: #244d36; color: #fff; box-shadow: 0 12px 28px rgba(22, 51, 34, 0.22); cursor: pointer; font: 750 14px Manrope, system-ui, sans-serif; }
-      .tip-fab:hover, .tip-fab:focus-visible { background: #1d402d; }
-      .tip-card { width: min(360px, calc(100vw - 28px)); margin-bottom: 12px; padding: 16px; border: 1px solid #d7ded7; border-radius: 12px; background: #f8faf7; color: #17231c; box-shadow: 0 24px 70px rgba(20, 40, 28, 0.24); }
-      .tip-card-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
-      .tip-card-head strong { display: block; font-size: 16px; letter-spacing: -0.02em; }
-      .tip-card-head span { display: block; margin-top: 3px; color: #657269; font-size: 12px; line-height: 1.45; }
-      .tip-card-head button { border: 0; background: transparent; color: #647269; cursor: pointer; font-size: 24px; line-height: 1; }
-      .tip-card label { display: grid; gap: 6px; margin-bottom: 11px; color: #39483e; font-size: 12px; font-weight: 700; }
-      .tip-card input, .tip-card textarea { width: 100%; border: 1px solid #cbd5cc; border-radius: 7px; background: #fff; color: #17231c; font: 16px Manrope, system-ui, sans-serif; outline: none; }
-      .tip-card input { height: 42px; padding: 0 11px; }
-      .tip-card textarea { resize: vertical; min-height: 58px; padding: 10px 11px; }
-      .tip-card input:focus, .tip-card textarea:focus { border-color: #50745e; box-shadow: 0 0 0 3px rgba(80, 116, 94, 0.11); }
-      .tip-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-      .tip-total { display: flex; align-items: center; justify-content: space-between; margin: 6px 0 12px; padding: 11px 12px; border-radius: 8px; background: #eef2ed; color: #405046; font-size: 13px; }
-      .tip-total strong { color: #17231c; font-size: 17px; }
-      .tip-save { width: 100%; height: 44px; border: 1px solid #244d36; border-radius: 7px; background: #244d36; color: #fff; cursor: pointer; font: 750 13px Manrope, system-ui, sans-serif; }
-      .tip-save:hover, .tip-save:focus-visible { background: #1d402d; }
-      .tip-message { margin-top: 10px; padding: 9px 10px; border: 1px solid #d7ded7; border-radius: 7px; background: #eef2ed; color: #405046; font-size: 12px; line-height: 1.45; }
-      @media (max-width: 780px) { .tip-capture { right: 12px; bottom: calc(82px + env(safe-area-inset-bottom)); } .tip-card { max-height: calc(100dvh - 150px); overflow: auto; } }
-    `}</style>
-  );
-}
-
 export default function QuickTipLogger({ data, setData }) {
   const saving = useRef(false);
   const [busy, setBusy] = useState(false);
@@ -207,7 +180,6 @@ export default function QuickTipLogger({ data, setData }) {
 
   return (
     <div className={`tip-capture ${open ? "open" : ""}`}>
-      <TipLoggerStyles />
       {open && (
         <div className="tip-card" role="dialog" aria-label="Log shift tips">
           <div className="tip-card-head">
@@ -384,7 +356,7 @@ export default function QuickTipLogger({ data, setData }) {
         onClick={() => setOpen((current) => !current)}
         aria-expanded={open}
       >
-        + Tips
+        + Log tips
       </button>
     </div>
   );

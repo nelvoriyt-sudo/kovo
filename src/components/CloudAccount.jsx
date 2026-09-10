@@ -1,40 +1,6 @@
 import React, { useState } from "react";
 import { requestPasswordReset, signIn, signUp, resendVerification } from "../lib/cloud.js";
 
-const recoveryButtonStyle = {
-  background: "transparent",
-  border: 0,
-  color: "#2c5c3e",
-  cursor: "pointer",
-  font: "700 12px Manrope, system-ui",
-  marginTop: 8,
-  padding: 0,
-};
-
-const localModeWrapStyle = {
-  borderTop: "1px solid #dce2dc",
-  marginTop: 22,
-  paddingTop: 20,
-};
-
-const localModeButtonStyle = {
-  background: "#eef2ed",
-  border: "1px solid #cbd5cc",
-  borderRadius: 6,
-  color: "#274432",
-  cursor: "pointer",
-  font: "700 13px Manrope, system-ui",
-  padding: "10px 12px",
-  width: "100%",
-};
-
-const localModeCopyStyle = {
-  color: "#7b887f",
-  fontSize: 11.5,
-  lineHeight: 1.5,
-  marginTop: 10,
-};
-
 export default function CloudAccount({ session, syncStatus, onSignedIn, onSignOut, onContinueLocally }) {
   const [mode, setMode] = useState("signin");
   const [email, setEmail] = useState("");
@@ -106,7 +72,7 @@ export default function CloudAccount({ session, syncStatus, onSignedIn, onSignOu
 
   return (
     <div className="auth-form-wrap">
-      <div className="auth-mobile-brand">K<span>↗</span>vo</div>
+      <div className="auth-mobile-brand">Kovo<span>.</span></div>
       <div className="cloud-login-title">{mode === "signup" ? "Create your Kovo account" : "Welcome back"}</div>
       <div className="cloud-login-copy">
         {mode === "signup"
@@ -140,9 +106,9 @@ export default function CloudAccount({ session, syncStatus, onSignedIn, onSignOu
           {busy ? "One moment…" : mode === "signup" ? "Create account" : "Sign in"}
         </button>
       </form>
-      <button style={recoveryButtonStyle} disabled={busy} type="button" onClick={async()=>{if(!normalizedEmail){setMessage('Enter your email first.');return;}setBusy(true);try{await resendVerification(normalizedEmail);setMessage('Verification email requested. Check your inbox and spam folder.');}catch(error){setMessage(error.message);}finally{setBusy(false);}}}>Resend verification email</button>
+      <button className="recovery-button" disabled={busy} type="button" onClick={async()=>{if(!normalizedEmail){setMessage('Enter your email first.');return;}setBusy(true);try{await resendVerification(normalizedEmail);setMessage('Verification email requested. Check your inbox and spam folder.');}catch(error){setMessage(error.message);}finally{setBusy(false);}}}>Resend verification email</button>
       {mode === "signin" && (
-        <button style={recoveryButtonStyle} disabled={busy} onClick={sendPasswordReset} type="button">
+        <button className="recovery-button" disabled={busy} onClick={sendPasswordReset} type="button">
           Forgot password?
         </button>
       )}
@@ -154,11 +120,11 @@ export default function CloudAccount({ session, syncStatus, onSignedIn, onSignOu
         </button>
       </div>
       {onContinueLocally && (
-        <div style={localModeWrapStyle}>
-          <button style={localModeButtonStyle} disabled={busy} onClick={onContinueLocally} type="button">
+        <div className="local-mode">
+          <button className="local-mode-button" disabled={busy} onClick={onContinueLocally} type="button">
             Continue on this device for now
           </button>
-          <p style={localModeCopyStyle}>Entries stay on this device until you sign in and import them. Keep a backup before clearing browser storage.</p>
+          <p className="local-mode-copy">Entries stay on this device until you sign in and import them. Keep a backup before clearing browser storage.</p>
         </div>
       )}
       <div className="auth-fineprint">Your login stays securely remembered on this device until you sign out.</div>

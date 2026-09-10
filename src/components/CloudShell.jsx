@@ -24,6 +24,8 @@ import { synchronize, resolveConflict } from "../lib/sync.js";
 import { downloadBackup, parseBackup } from "../lib/backup.js";
 import { validateChanges } from "../lib/validation.js";
 
+import { useAppearance } from '../lib/appearance.js';
+
 let authInitialization;
 function describeEntry(value) {
   if (value == null) return "Entry removed";
@@ -149,6 +151,7 @@ export default function CloudShell() {
     };
   }, [owner, ready, recovery, session?.user?.id]);
   const data = envelope ? visibleData(envelope) : emptyData();
+  useAppearance(envelope ? data.settings : undefined);
   const setData = async (update) => {
     try {
       const next = typeof update === "function" ? update(data) : update;
@@ -225,7 +228,7 @@ export default function CloudShell() {
     return (
       <div className="kovo-boot">
         <div className="auth-mark">
-          K<span>↗</span>vo
+          Kovo<span>.</span>
         </div>
         <p>{error || "Opening your Kovo…"}</p>
       </div>
@@ -268,7 +271,7 @@ export default function CloudShell() {
       <main className="auth-page">
         <section className="auth-story" aria-hidden="true">
           <div className="auth-brand">
-            K<span>↗</span>vo
+            Kovo<span>.</span>
           </div>
           <div className="auth-story-copy">
             <div className="auth-eyebrow">Your money, in one calm place</div>
@@ -299,6 +302,7 @@ export default function CloudShell() {
     );
   return (
     <>
+      <a className="skip-link" href="#main-content">Skip to content</a>
       <DataBoundary key={owner} data={data}>
         <App data={data} setData={setData} />
       </DataBoundary>
@@ -308,7 +312,7 @@ export default function CloudShell() {
         onClick={() => setAccountOpen(true)}
         aria-label="Open Kovo account"
       >
-        ● {session ? status : "Local only"}
+        <span className="status-dot" aria-hidden="true"/> {session ? status : "Local only"}
       </button>
       {error && (
         <div className="save-notice" role="status">
