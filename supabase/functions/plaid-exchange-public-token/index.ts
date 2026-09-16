@@ -28,6 +28,7 @@ const PLAID_TYPE_MAP: Record<string, string> = {
 }
 
 type PlaidAccount = {
+  account_id: string
   name: string
   type: string
   subtype: string | null
@@ -116,6 +117,7 @@ Deno.serve(async (req: Request) => {
     type: a.subtype === 'savings' ? 'savings' : (PLAID_TYPE_MAP[a.type] ?? 'other'),
     current_balance: a.balances.current ?? 0,
     plaid_item_id: itemId,
+    plaid_account_id: a.account_id,
     plaid_access_token_encrypted: encryptedToken,
   }))
 
@@ -124,6 +126,15 @@ Deno.serve(async (req: Request) => {
     if (insertError) {
       return json({ error: insertError.message }, 500)
     }
+  }
+
+  // Tracks the incremental sync cursor for this item; plaid-sync-transactions
+  // reads/updates this row on every sync.
+  const { error: itemInsertError } = await supabase
+    .from('plaid_items')
+    .insert({ item_id: itemId, user_id: userData.user.id })
+  if (itemInsertError) {
+    return json({ error: itemInsertError.message }, 500)
   }
 
   return json({ success: true, accounts_linked: rows.length })

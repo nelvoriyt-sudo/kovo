@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import { PlaidConnectButton } from '@/components/PlaidConnectButton'
+import { PlaidSyncButton } from '@/components/PlaidSyncButton'
 import { Select } from '@/components/ui/Select'
 import { useAccounts } from '@/hooks/useAccounts'
 import { useUserSettings } from '@/hooks/useUserSettings'
@@ -46,8 +47,9 @@ export function SettingsPage() {
             </ul>
           )}
 
-          <div className="mt-3">
+          <div className="mt-3 flex flex-wrap gap-2">
             <PlaidConnectButton onLinked={refreshAccounts} />
+            {accounts.some((a) => a.plaid_item_id) && <PlaidSyncButton />}
           </div>
         </section>
 

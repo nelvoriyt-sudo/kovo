@@ -1,29 +1,7 @@
 import { Bank } from '@phosphor-icons/react'
 import { useCallback, useEffect, useState } from 'react'
 import { usePlaidLink, type PlaidLinkOnSuccess } from 'react-plaid-link'
-import { supabase } from '@/lib/supabase'
-
-const FUNCTIONS_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1`
-
-/** Calls a Supabase Edge Function with the current session's token via plain
- * fetch, so we get the real {error} response body on failure instead of
- * supabase-js's generic "non-2xx status code" wrapper. */
-async function callFunction<T>(name: string, body?: unknown): Promise<T> {
-  const { data: sessionData } = await supabase.auth.getSession()
-  const token = sessionData.session?.access_token
-  if (!token) throw new Error('You need to be signed in.')
-
-  const res = await fetch(`${FUNCTIONS_URL}/${name}`, {
-    method: 'POST',
-    headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-    body: body ? JSON.stringify(body) : undefined,
-  })
-  const json = await res.json().catch(() => null)
-  if (!res.ok) {
-    throw new Error(json?.error ?? `Request failed (${res.status})`)
-  }
-  return json as T
-}
+import { callPlaidFunction } from '@/lib/plaidFunctions'
 
 export function PlaidConnectButton({ onLinked }: { onLinked: () => void }) {
   const [linkToken, setLinkToken] = useState<string | null>(null)
@@ -34,7 +12,7 @@ export function PlaidConnectButton({ onLinked }: { onLinked: () => void }) {
     setLoading(true)
     setError(null)
     try {
-      const data = await callFunction<{ link_token: string }>('plaid-create-link-token')
+      const data = await callPlaidFunction<{ link_token: string }>('plaid-create-link-token')
       setLinkToken(data.link_token)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Could not start bank connection.')
@@ -49,7 +27,10 @@ export function PlaidConnectButton({ onLinked }: { onLinked: () => void }) {
       setError(null)
       setLinkToken(null)
       try {
-        await callFunction('plaid-exchange-public-token', { public_token: publicToken })
+        await callPlaidFunction('plaid-exchange-public-token', { public_token: publicToken })
+        // Pull transactions immediately so the new account isn't just an
+        // empty shell until the user separately hits "Sync now".
+        await callPlaidFunction('plaid-sync-transactions').catch(() => {})
         onLinked()
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Could not finish linking your bank.')

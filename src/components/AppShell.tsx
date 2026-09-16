@@ -16,9 +16,9 @@ import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { NavLink } from 'react-router-dom'
 import { AddTransactionModal } from '@/components/AddTransactionModal'
 import { KovoLogo } from '@/components/KovoLogo'
+import { UserSettingsProvider } from '@/components/UserSettingsProvider'
 import { useEffectiveTheme } from '@/hooks/useEffectiveTheme'
 import { useUserSettings } from '@/hooks/useUserSettings'
-import { CurrencyProvider } from '@/lib/currencyContext'
 import { supabase } from '@/lib/supabase'
 import { cn } from '@/lib/utils'
 
@@ -42,6 +42,14 @@ const TAB_ITEMS = TAB_PATHS.map((path) => NAV_ITEMS.find((item) => item.to === p
 const MORE_ITEMS = NAV_ITEMS.filter((item) => !TAB_PATHS.includes(item.to))
 
 export function AppShell({ children }: { children: ReactNode }) {
+  return (
+    <UserSettingsProvider>
+      <AppShellContent>{children}</AppShellContent>
+    </UserSettingsProvider>
+  )
+}
+
+function AppShellContent({ children }: { children: ReactNode }) {
   const [moreOpen, setMoreOpen] = useState(false)
   const [addOpen, setAddOpen] = useState(false)
   const theme = useEffectiveTheme()
@@ -117,11 +125,9 @@ export function AppShell({ children }: { children: ReactNode }) {
         </div>
       </header>
 
-      <CurrencyProvider>
-        <main className="min-w-0 flex-1 px-6 py-10 pb-28 sm:px-10 md:pb-10">
-          <div className="mx-auto max-w-4xl">{children}</div>
-        </main>
-      </CurrencyProvider>
+      <main className="min-w-0 flex-1 px-6 py-10 pb-28 sm:px-10 md:pb-10">
+        <div className="mx-auto max-w-4xl">{children}</div>
+      </main>
 
       {/* Bottom tab bar — mobile only, native-app-style navigation */}
       <nav
