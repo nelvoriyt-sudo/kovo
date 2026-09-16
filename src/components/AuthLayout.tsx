@@ -32,7 +32,7 @@ export function AuthLayout({ children }: { children: ReactNode }) {
           </p>
         </div>
 
-        <p className="relative text-sm text-[#79726a]">A private ledger for you and yours.</p>
+        <p className="relative text-sm text-[#948b81]">A private ledger for you and yours.</p>
       </div>
 
       <div className="flex flex-1 items-center justify-center p-6 sm:p-10">

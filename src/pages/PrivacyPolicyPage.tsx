@@ -35,6 +35,13 @@ export function PrivacyPolicyPage() {
         for the database and authentication, and Vercel for hosting).
       </p>
 
+      <h2 className="font-display text-lg font-semibold text-ink">Third-party services</h2>
+      <p>
+        Beyond Supabase and Vercel, kovo loads typefaces from Google Fonts and, if you choose it,
+        uses Google Sign-In for authentication. Both involve your browser talking directly to
+        Google. We don't embed any ads, analytics, or tracking scripts.
+      </p>
+
       <h2 className="font-display text-lg font-semibold text-ink">Bank connections</h2>
       <p>
         kovo does not currently connect to any bank accounts. If bank-linking (via Plaid) is added

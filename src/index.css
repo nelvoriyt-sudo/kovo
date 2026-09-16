@@ -11,12 +11,12 @@
   --color-paper: #faf7f2;
   --color-paper-dim: #f2ede6;
   --color-tan: #c9a27c;
-  --color-tan-dark: #a3775a;
-  --color-tan-darker: #8a6248;
+  --color-tan-dark: #8a5a3f;
+  --color-tan-darker: #6f4830;
 
   --color-border: #e6ded2;
   --color-muted: #6b645c;
-  --color-muted-light: #a49b8f;
+  --color-muted-light: #756b60;
 }
 
 :root {
