@@ -14,7 +14,7 @@ He does not code. Act as lead developer: fix errors you find rather than just re
 
 ## Users & security model
 
-* Jaiden + friends/family. Every user sees only their own data — no user-to-user sharing of any kind.
+* Him + friends/family. Every user sees only their own data — no user-to-user sharing of any kind.
 * Login/signup page with Google sign-in (Supabase Auth).
 * Row Level Security is enabled on every table, scoped to `auth.uid()`. Never weaken this.
 * Full guardrails (follow these on every session, not just once):
