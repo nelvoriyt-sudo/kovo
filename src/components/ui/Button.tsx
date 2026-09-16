@@ -11,9 +11,9 @@ const base =
   'touch-manipulation inline-flex h-12 w-full items-center justify-center gap-2.5 rounded-[10px] px-4 text-[15px] font-semibold font-sans transition-colors disabled:cursor-not-allowed disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-tan-dark'
 
 const variants: Record<ButtonVariant, string> = {
-  primary: 'bg-ink text-paper-dim hover:bg-ink-light',
+  primary: 'bg-ink text-on-ink hover:bg-ink-light',
   secondary:
-    'border border-border bg-white text-ink hover:bg-paper-dim/60',
+    'border border-border bg-surface text-ink hover:bg-paper-dim/60',
 }
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(

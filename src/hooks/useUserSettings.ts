@@ -1,13 +1,22 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useAuth } from '@/lib/auth'
 import { supabase } from '@/lib/supabase'
 
-type UserSettings = {
+export type UserSettings = {
+  theme: 'light' | 'dark' | 'system'
+  accent_color: string
   currency: string
   compact_numbers: boolean
+  date_format: string
 }
 
-const defaults: UserSettings = { currency: 'USD', compact_numbers: false }
+const defaults: UserSettings = {
+  theme: 'system',
+  accent_color: '#8A7A6D',
+  currency: 'USD',
+  compact_numbers: false,
+  date_format: 'MM/DD/YYYY',
+}
 
 export function useUserSettings() {
   const { user } = useAuth()
@@ -20,12 +29,12 @@ export function useUserSettings() {
 
     supabase
       .from('user_settings')
-      .select('currency, compact_numbers')
+      .select('theme, accent_color, currency, compact_numbers, date_format')
       .eq('user_id', user.id)
       .maybeSingle()
       .then(({ data }) => {
         if (cancelled) return
-        if (data) setSettings(data)
+        if (data) setSettings(data as UserSettings)
         setLoading(false)
       })
 
@@ -34,5 +43,17 @@ export function useUserSettings() {
     }
   }, [user])
 
-  return { settings, loading }
+  const updateSettings = useCallback(
+    async (patch: Partial<UserSettings>) => {
+      if (!user) return
+      setSettings((s) => ({ ...s, ...patch }))
+      await supabase
+        .from('user_settings')
+        .update({ ...patch, updated_at: new Date().toISOString() })
+        .eq('user_id', user.id)
+    },
+    [user],
+  )
+
+  return { settings, loading, updateSettings }
 }

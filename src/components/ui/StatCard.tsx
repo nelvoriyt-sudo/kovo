@@ -13,7 +13,7 @@ export function StatCard({
   children?: ReactNode
 }) {
   return (
-    <div className="flex flex-col gap-1.5 rounded-2xl border border-border bg-white p-6">
+    <div className="flex flex-col gap-1.5 rounded-2xl border border-border bg-surface p-6">
       <span className="text-[13px] font-semibold uppercase tracking-wide text-muted-light">
         {label}
       </span>

@@ -10,6 +10,8 @@
   --color-ink-light: #2a2723;
   --color-paper: #faf7f2;
   --color-paper-dim: #f2ede6;
+  --color-surface: #ffffff;
+  --color-on-ink: #f2ede6;
   --color-tan: #c9a27c;
   --color-tan-dark: #8a5a3f;
   --color-tan-darker: #6f4830;
@@ -28,4 +30,22 @@ body {
   font-family: var(--font-sans);
   background: var(--color-paper);
   color: var(--color-ink);
+}
+
+/* Scoped to the authenticated app shell only — the public login/legal pages
+   keep their fixed brand look regardless of the user's theme setting. */
+.theme-dark {
+  color-scheme: dark;
+  --color-ink: #f0ebe3;
+  --color-ink-light: #ddd4c5;
+  --color-paper: #17140f;
+  --color-paper-dim: #221f1a;
+  --color-surface: #201d18;
+  --color-on-ink: #1c1a17;
+  --color-tan-dark: #d9ad82;
+  --color-tan-darker: #e8c39c;
+
+  --color-border: #34302a;
+  --color-muted: #a89e90;
+  --color-muted-light: #897e70;
 }
