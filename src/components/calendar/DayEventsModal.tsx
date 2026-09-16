@@ -1,3 +1,4 @@
+import { TrashSimple } from '@phosphor-icons/react'
 import { format } from 'date-fns'
 import { useState } from 'react'
 import { Button } from '@/components/ui/Button'
@@ -192,9 +193,7 @@ function EventRow({
         onClick={onDelete}
         className="touch-manipulation rounded-full p-1.5 text-muted-light hover:bg-paper-dim hover:text-[#a34c3f]"
       >
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-          <path d="M3 4h10M6.5 4V2.5h3V4M4.5 4l.5 9.5h6l.5-9.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
+        <TrashSimple className="h-4 w-4" aria-hidden="true" />
       </button>
     </div>
   )

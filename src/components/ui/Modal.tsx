@@ -1,3 +1,4 @@
+import { X } from '@phosphor-icons/react'
 import { useEffect, useRef, type ReactNode } from 'react'
 
 export function Modal({
@@ -41,9 +42,7 @@ export function Modal({
           aria-label="Close"
           className="touch-manipulation rounded-full p-1.5 text-muted hover:bg-paper-dim hover:text-ink"
         >
-          <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
-            <path d="M4 4L14 14M14 4L4 14" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
-          </svg>
+          <X className="h-[18px] w-[18px]" weight="bold" aria-hidden="true" />
         </button>
       </div>
       <div className="mt-4">{children}</div>

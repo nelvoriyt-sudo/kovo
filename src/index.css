@@ -5,20 +5,25 @@
   --font-display: 'Sora', system-ui, sans-serif;
   --font-sans: 'Manrope', system-ui, sans-serif;
 
-  /* kovo brand: charcoal (near-black) + warm taupe/tan accent */
+  /* kovo brand: charcoal (near-black, from the logo) + tan accent (from the logo).
+     Background/surface neutrals are kept close to true neutral gray rather than
+     warm cream -- the warm-paper + brass/tan + espresso combination is one of
+     the most recognizable generic AI-default palettes, and real finance apps
+     (Monarch, YNAB, Rocket Money) all run clean near-white/neutral-gray, not
+     warm cream, in light mode. */
   --color-ink: #1c1a17;
   --color-ink-light: #2a2723;
-  --color-paper: #faf7f2;
-  --color-paper-dim: #f2ede6;
+  --color-paper: #f8f8f7;
+  --color-paper-dim: #eeeeec;
   --color-surface: #ffffff;
   --color-on-ink: #f2ede6;
   --color-tan: #c9a27c;
   --color-tan-dark: #8a5a3f;
   --color-tan-darker: #6f4830;
 
-  --color-border: #e6ded2;
-  --color-muted: #6b645c;
-  --color-muted-light: #756b60;
+  --color-border: #e2e1de;
+  --color-muted: #64605a;
+  --color-muted-light: #706b63;
 
   --color-highlight: #fbf3e8;
   --color-highlight-border: #e8d9c5;

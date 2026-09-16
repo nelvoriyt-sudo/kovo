@@ -1,3 +1,4 @@
+import { CaretLeft, CaretRight } from '@phosphor-icons/react'
 import { addMonths, endOfMonth, endOfWeek, format, startOfMonth, startOfWeek, subMonths } from 'date-fns'
 import { useState } from 'react'
 import { CalendarGrid } from '@/components/calendar/CalendarGrid'
@@ -49,9 +50,7 @@ export function CalendarPage() {
             onClick={() => setMonthDate((d) => subMonths(d, 1))}
             className="touch-manipulation rounded-full p-2 hover:bg-paper-dim"
           >
-            <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
-              <path d="M11 4l-5 5 5 5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
+            <CaretLeft className="h-[18px] w-[18px]" aria-hidden="true" />
           </button>
           <span className="font-display text-lg font-semibold text-ink">{format(monthDate, 'MMMM yyyy')}</span>
           <button
@@ -60,9 +59,7 @@ export function CalendarPage() {
             onClick={() => setMonthDate((d) => addMonths(d, 1))}
             className="touch-manipulation rounded-full p-2 hover:bg-paper-dim"
           >
-            <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
-              <path d="M7 4l5 5-5 5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
+            <CaretRight className="h-[18px] w-[18px]" aria-hidden="true" />
           </button>
         </div>
 

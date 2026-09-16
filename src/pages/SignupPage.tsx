@@ -68,10 +68,18 @@ export function SignupPage() {
   if (confirmationSent) {
     return (
       <AuthLayout>
-        <h1 className="font-display text-2xl font-semibold text-ink">Check your email</h1>
+        <h1 className="font-display text-2xl font-semibold text-ink">Almost there</h1>
         <p className="mt-2 text-[15px] text-muted">
-          We sent a confirmation link to <span className="font-semibold text-ink">{email}</span>.
-          Follow it to finish creating your account.
+          If <span className="font-semibold text-ink">{email}</span> is new, we've sent a
+          confirmation link — follow it to finish creating your account.
+        </p>
+        <p className="mt-3 text-[15px] text-muted">
+          Already have an account with this email? Nothing was sent, and no email address needs
+          to log in twice. Try{' '}
+          <Link to="/login" className="font-semibold text-tan-dark hover:text-tan-darker">
+            signing in
+          </Link>{' '}
+          instead, or use "Continue with Google" if that's how you originally signed up.
         </p>
         <Link to="/login" className="mt-8 inline-block text-sm font-semibold text-tan-dark hover:text-tan-darker">
           Back to sign in

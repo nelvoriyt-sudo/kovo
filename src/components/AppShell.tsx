@@ -1,34 +1,38 @@
+import {
+  CalendarBlank,
+  ChartPieSlice,
+  DotsThreeOutline,
+  Gear,
+  ListBullets,
+  Plus,
+  SignOut,
+  SquaresFour,
+  Tag,
+  TrendUp,
+  Wallet,
+  type Icon,
+} from '@phosphor-icons/react'
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { NavLink } from 'react-router-dom'
 import { AddTransactionModal } from '@/components/AddTransactionModal'
 import { KovoLogo } from '@/components/KovoLogo'
-import {
-  BudgetIcon,
-  CalendarIcon,
-  DashboardIcon,
-  ListIcon,
-  MoreIcon,
-  PieIcon,
-  SettingsIcon,
-  TagIcon,
-  TrendIcon,
-} from '@/components/NavIcons'
-import { Button } from '@/components/ui/Button'
 import { useEffectiveTheme } from '@/hooks/useEffectiveTheme'
 import { useUserSettings } from '@/hooks/useUserSettings'
 import { CurrencyProvider } from '@/lib/currencyContext'
 import { supabase } from '@/lib/supabase'
 import { cn } from '@/lib/utils'
 
-const NAV_ITEMS = [
-  { to: '/', label: 'Dashboard', end: true, icon: DashboardIcon },
-  { to: '/spending', label: 'Spending', icon: PieIcon },
-  { to: '/trends', label: 'Trends', icon: TrendIcon },
-  { to: '/budgets', label: 'Budgets', icon: BudgetIcon },
-  { to: '/calendar', label: 'Calendar', icon: CalendarIcon },
-  { to: '/transactions', label: 'Transactions', icon: ListIcon },
-  { to: '/categories', label: 'Categories', icon: TagIcon },
-  { to: '/settings', label: 'Settings', icon: SettingsIcon },
+type NavItem = { to: string; label: string; end?: boolean; icon: Icon }
+
+const NAV_ITEMS: NavItem[] = [
+  { to: '/', label: 'Dashboard', end: true, icon: SquaresFour },
+  { to: '/spending', label: 'Spending', icon: ChartPieSlice },
+  { to: '/trends', label: 'Trends', icon: TrendUp },
+  { to: '/budgets', label: 'Budgets', icon: Wallet },
+  { to: '/calendar', label: 'Calendar', icon: CalendarBlank },
+  { to: '/transactions', label: 'Transactions', icon: ListBullets },
+  { to: '/categories', label: 'Categories', icon: Tag },
+  { to: '/settings', label: 'Settings', icon: Gear },
 ]
 
 // The 4 destinations most useful on the go get their own bottom-tab slot on mobile;
@@ -51,49 +55,72 @@ export function AppShell({ children }: { children: ReactNode }) {
   return (
     <div
       ref={rootRef}
-      className={cn('min-h-svh bg-paper text-ink', theme === 'dark' && 'theme-dark')}
+      className={cn('min-h-svh bg-paper text-ink md:flex', theme === 'dark' && 'theme-dark')}
     >
-      <header className="border-b border-border">
-        <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-4 sm:px-10">
+      {/* Sidebar — desktop only. A vertical list scales to any number of
+          destinations without the horizontal-overflow problem a top nav has. */}
+      <aside className="hidden w-60 shrink-0 flex-col border-r border-border px-4 py-6 md:flex">
+        <div className="px-2">
           <KovoLogo className="h-6 w-auto" />
+        </div>
 
-          <nav className="hidden items-center gap-1 md:flex">
-            {NAV_ITEMS.map((item) => (
-              <NavLink
-                key={item.to}
-                to={item.to}
-                end={item.end}
-                className={({ isActive }) =>
-                  cn(
-                    'flex items-center gap-1.5 rounded-full px-3.5 py-2 text-sm font-medium text-muted transition-colors hover:bg-paper-dim hover:text-ink',
-                    isActive && 'bg-ink text-on-ink hover:bg-ink hover:text-on-ink',
-                  )
-                }
-              >
-                <item.icon className="h-4 w-4" />
-                {item.label}
-              </NavLink>
-            ))}
-          </nav>
+        <button
+          type="button"
+          onClick={() => setAddOpen(true)}
+          className="mt-6 flex touch-manipulation items-center justify-center gap-2 rounded-[10px] bg-ink px-4 py-2.5 text-sm font-semibold text-on-ink transition-colors hover:bg-ink-light"
+        >
+          <Plus className="h-4 w-4" weight="bold" />
+          Add transaction
+        </button>
 
-          <div className="flex items-center gap-2">
-            <Button type="button" className="w-auto px-4" onClick={() => setAddOpen(true)}>
-              + Add
-            </Button>
-            <Button
-              type="button"
-              variant="secondary"
-              className="hidden w-auto px-4 md:inline-flex"
-              onClick={() => supabase.auth.signOut()}
+        <nav aria-label="Primary" className="mt-6 flex flex-1 flex-col gap-0.5">
+          {NAV_ITEMS.map((item) => (
+            <NavLink
+              key={item.to}
+              to={item.to}
+              end={item.end}
+              className={({ isActive }) =>
+                cn(
+                  'flex items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm font-medium text-muted transition-colors hover:bg-paper-dim hover:text-ink',
+                  isActive && 'bg-paper-dim font-semibold text-ink',
+                )
+              }
             >
-              Sign out
-            </Button>
-          </div>
+              <item.icon className="h-[18px] w-[18px]" weight="regular" />
+              {item.label}
+            </NavLink>
+          ))}
+        </nav>
+
+        <button
+          type="button"
+          onClick={() => supabase.auth.signOut()}
+          className="flex touch-manipulation items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm font-medium text-muted transition-colors hover:bg-paper-dim hover:text-ink"
+        >
+          <SignOut className="h-[18px] w-[18px]" />
+          Sign out
+        </button>
+      </aside>
+
+      {/* Compact header — mobile only */}
+      <header className="border-b border-border md:hidden">
+        <div className="flex items-center justify-between px-6 py-4">
+          <KovoLogo className="h-6 w-auto" />
+          <button
+            type="button"
+            onClick={() => setAddOpen(true)}
+            aria-label="Add transaction"
+            className="flex h-10 w-10 touch-manipulation items-center justify-center rounded-full bg-ink text-on-ink"
+          >
+            <Plus className="h-5 w-5" weight="bold" />
+          </button>
         </div>
       </header>
 
       <CurrencyProvider>
-        <main className="mx-auto max-w-5xl px-6 py-10 pb-28 sm:px-10 md:pb-10">{children}</main>
+        <main className="min-w-0 flex-1 px-6 py-10 pb-28 sm:px-10 md:pb-10">
+          <div className="mx-auto max-w-4xl">{children}</div>
+        </main>
       </CurrencyProvider>
 
       {/* Bottom tab bar — mobile only, native-app-style navigation */}
@@ -113,7 +140,7 @@ export function AppShell({ children }: { children: ReactNode }) {
               )
             }
           >
-            <item.icon className="h-5 w-5" />
+            <item.icon className="h-5 w-5" weight="regular" />
             {item.label}
           </NavLink>
         ))}
@@ -123,7 +150,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           aria-label="More"
           className="flex flex-1 touch-manipulation flex-col items-center gap-1 py-2.5 text-[11px] font-medium text-muted-light"
         >
-          <MoreIcon className="h-5 w-5" />
+          <DotsThreeOutline className="h-5 w-5" weight="regular" />
           More
         </button>
       </nav>
@@ -152,7 +179,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                     )
                   }
                 >
-                  <item.icon className="h-5 w-5 text-muted" />
+                  <item.icon className="h-5 w-5 text-muted" weight="regular" />
                   {item.label}
                 </NavLink>
               ))}
