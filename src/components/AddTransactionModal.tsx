@@ -102,7 +102,7 @@ export function AddTransactionModal({
   return (
     <Modal open={open} onClose={() => { reset(); onClose() }} title="Add transaction">
       <form onSubmit={handleSubmit} className="flex flex-col gap-4" noValidate>
-        <div className="flex gap-2 rounded-[10px] bg-paper-dim p-1">
+        <div className="flex gap-2 rounded-[5px] bg-raise p-1">
           {(['expense', 'income'] as const).map((t) => (
             <button
               key={t}
@@ -113,7 +113,7 @@ export function AddTransactionModal({
               }}
               className={cn(
                 'flex-1 touch-manipulation rounded-lg py-2 text-sm font-semibold capitalize transition-colors',
-                type === t ? 'bg-ink text-on-ink' : 'text-muted hover:text-ink',
+                type === t ? 'bg-accent text-on-accent' : 'text-muted hover:text-ink',
               )}
             >
               {t}
@@ -122,7 +122,7 @@ export function AddTransactionModal({
         </div>
 
         <div className="flex flex-col gap-1.5">
-          <label htmlFor="tx-amount" className="text-[13px] font-semibold text-[#4a453e]">
+          <label htmlFor="tx-amount" className="text-[13px] font-semibold text-ink">
             Amount
           </label>
           <Input
@@ -139,7 +139,7 @@ export function AddTransactionModal({
         </div>
 
         <div className="flex flex-col gap-1.5">
-          <label htmlFor="tx-category" className="text-[13px] font-semibold text-[#4a453e]">
+          <label htmlFor="tx-category" className="text-[13px] font-semibold text-ink">
             Category
           </label>
           <Select
@@ -157,15 +157,15 @@ export function AddTransactionModal({
         </div>
 
         <div className="flex flex-col gap-1.5">
-          <label htmlFor="tx-date" className="text-[13px] font-semibold text-[#4a453e]">
+          <label htmlFor="tx-date" className="text-[13px] font-semibold text-ink">
             Date
           </label>
           <Input id="tx-date" type="date" value={date} onChange={(e) => setDate(e.target.value)} required />
         </div>
 
         <div className="flex flex-col gap-1.5">
-          <label htmlFor="tx-account" className="text-[13px] font-semibold text-[#4a453e]">
-            Account <span className="font-normal text-muted-light">(optional)</span>
+          <label htmlFor="tx-account" className="text-[13px] font-semibold text-ink">
+            Account <span className="font-normal text-muted">(optional)</span>
           </label>
           {addingAccount ? (
             <div className="flex gap-2">
@@ -203,8 +203,8 @@ export function AddTransactionModal({
         </div>
 
         <div className="flex flex-col gap-1.5">
-          <label htmlFor="tx-description" className="text-[13px] font-semibold text-[#4a453e]">
-            Description <span className="font-normal text-muted-light">(optional)</span>
+          <label htmlFor="tx-description" className="text-[13px] font-semibold text-ink">
+            Description <span className="font-normal text-muted">(optional)</span>
           </label>
           <Input
             id="tx-description"
@@ -215,7 +215,7 @@ export function AddTransactionModal({
         </div>
 
         {error && (
-          <p role="alert" className="text-[13px] text-red-700">
+          <p role="alert" className="text-[13px] text-neg">
             {error}
           </p>
         )}

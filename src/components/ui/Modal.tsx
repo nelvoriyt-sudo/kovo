@@ -30,7 +30,7 @@ export function Modal({
         if (e.target === ref.current) onClose()
       }}
       aria-labelledby="modal-title"
-      className="w-full max-w-md rounded-2xl border border-border bg-surface p-6 backdrop:bg-ink/40 open:animate-none"
+      className="w-full max-w-md rounded-[6px] border border-line bg-surface p-6 text-ink backdrop:bg-black/55 open:animate-none"
     >
       <div className="flex items-center justify-between">
         <h2 id="modal-title" className="font-display text-lg font-semibold text-ink">
@@ -40,7 +40,7 @@ export function Modal({
           type="button"
           onClick={onClose}
           aria-label="Close"
-          className="touch-manipulation rounded-full p-1.5 text-muted hover:bg-paper-dim hover:text-ink"
+          className="touch-manipulation rounded-full p-1.5 text-muted hover:bg-raise hover:text-ink"
         >
           <X className="h-[18px] w-[18px]" weight="bold" aria-hidden="true" />
         </button>

@@ -1,10 +1,10 @@
 import { createContext, useCallback, useContext, useEffect, useState } from 'react'
 import { useAuth } from '@/lib/auth'
 import { supabase } from '@/lib/supabase'
+import type { ThemeId } from '@/lib/themes'
 
 export type UserSettings = {
-  theme: 'light' | 'dark' | 'system'
-  accent_color: string
+  theme: ThemeId
   currency: string
   compact_numbers: boolean
   date_format: string
@@ -12,11 +12,12 @@ export type UserSettings = {
 
 const defaults: UserSettings = {
   theme: 'system',
-  accent_color: '#8A7A6D',
   currency: 'USD',
   compact_numbers: false,
   date_format: 'MM/DD/YYYY',
 }
+
+export const THEME_STORAGE_KEY = 'kovo.theme'
 
 export type UserSettingsContextValue = {
   settings: UserSettings
@@ -27,10 +28,9 @@ export type UserSettingsContextValue = {
 export const UserSettingsContext = createContext<UserSettingsContextValue | undefined>(undefined)
 
 /**
- * Fetches + owns the one shared copy of user_settings. Every consumer of
- * useUserSettings() reads from this same instance, so a change made in one
- * place (e.g. Settings) is immediately visible everywhere else (nav theme,
- * currency formatting) without a page reload.
+ * Fetches and owns the one shared copy of user_settings. Every consumer of
+ * useUserSettings() reads this same instance, so a change made in one place
+ * (Settings) is immediately visible everywhere else without a page reload.
  */
 export function useUserSettingsState(): UserSettingsContextValue {
   const { user } = useAuth()
@@ -43,7 +43,7 @@ export function useUserSettingsState(): UserSettingsContextValue {
 
     supabase
       .from('user_settings')
-      .select('theme, accent_color, currency, compact_numbers, date_format')
+      .select('theme, currency, compact_numbers, date_format')
       .eq('user_id', user.id)
       .maybeSingle()
       .then(({ data }) => {

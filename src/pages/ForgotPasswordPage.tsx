@@ -30,7 +30,7 @@ export function ForgotPasswordPage() {
     <AuthLayout>
       {sent ? (
         <>
-          <h1 className="font-display text-2xl font-semibold text-ink">Check your email</h1>
+          <h1 className="font-display text-[27px] font-semibold tracking-[-0.025em] text-ink">Check your email</h1>
           <p className="mt-2 text-[15px] text-muted">
             If an account exists for <span className="font-semibold text-ink">{email}</span>,
             we've sent a link to reset your password.
@@ -38,14 +38,14 @@ export function ForgotPasswordPage() {
         </>
       ) : (
         <>
-          <h1 className="font-display text-2xl font-semibold text-ink">Reset your password</h1>
+          <h1 className="font-display text-[27px] font-semibold tracking-[-0.025em] text-ink">Reset your password</h1>
           <p className="mt-2 text-[15px] text-muted">
             Enter your email and we'll send you a reset link.
           </p>
 
           <form onSubmit={handleSubmit} className="mt-8 flex flex-col gap-3.5" noValidate>
             <div className="flex flex-col gap-1.5">
-              <label htmlFor="email" className="text-[13px] font-semibold text-[#4a453e]">
+              <label htmlFor="email" className="text-[13px] font-semibold text-ink">
                 Email
               </label>
               <Input
@@ -62,7 +62,7 @@ export function ForgotPasswordPage() {
             </div>
 
             {error && (
-              <p role="alert" className="text-[13px] text-red-700">
+              <p role="alert" className="text-[13px] text-neg">
                 {error}
               </p>
             )}
@@ -75,7 +75,7 @@ export function ForgotPasswordPage() {
       )}
 
       <p className="mt-6 text-center text-sm text-muted">
-        <Link to="/login" className="font-semibold text-tan-dark hover:text-tan-darker">
+        <Link to="/login" className="font-semibold text-accent hover:text-accent">
           Back to sign in
         </Link>
       </p>

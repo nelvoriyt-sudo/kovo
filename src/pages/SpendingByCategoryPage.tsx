@@ -1,12 +1,14 @@
 import { format } from 'date-fns'
+import { useNavigate } from 'react-router-dom'
 import { CategoryDonut } from '@/components/CategoryDonut'
+import { Panel } from '@/components/ui/Panel'
 import { useCategories } from '@/hooks/useCategories'
 import { useMonthTransactions } from '@/hooks/useMonthTransactions'
-import { getCategoryColor } from '@/lib/categoryColors'
 import { useFormatCurrency } from '@/lib/currencyContext'
 
 export function SpendingByCategoryPage() {
   const now = new Date()
+  const navigate = useNavigate()
   const formatCurrency = useFormatCurrency()
   const { transactions, loading } = useMonthTransactions(now)
   const { categories } = useCategories()
@@ -21,62 +23,88 @@ export function SpendingByCategoryPage() {
   }
 
   const slices = [...byCategory.entries()]
-    .map(([categoryId, amount]) => {
-      const category = categories.find((c) => c.id === categoryId)
-      return {
-        id: categoryId,
-        name: category?.name ?? 'Uncategorized',
-        amount,
-        color: category ? getCategoryColor(category) : '#a49b8f',
-      }
-    })
+    .map(([id, amount]) => ({
+      id,
+      name: categories.find((c) => c.id === id)?.name ?? 'Uncategorized',
+      amount,
+    }))
     .sort((a, b) => b.amount - a.amount)
 
   return (
     <div>
-      <h1 className="font-display text-2xl font-semibold text-ink">Spending by category</h1>
-      <p className="mt-1 text-[15px] text-muted">{format(now, 'MMMM yyyy')}</p>
+      <header>
+        <h1 className="font-display text-[30px] font-semibold tracking-[-0.025em] text-ink">
+          Spending by category
+        </h1>
+        <p className="mt-1 text-[15px] text-muted">{format(now, 'MMMM yyyy')}</p>
+      </header>
 
       {loading ? (
         <p className="mt-10 text-[15px] text-muted">Loading…</p>
       ) : slices.length === 0 ? (
-        <div className="mt-10 rounded-2xl border border-dashed border-border p-10 text-center">
+        <div className="mt-8 rounded-[4px] border border-dashed border-line p-10 text-center">
           <p className="font-display text-lg font-semibold text-ink">No expenses yet this month</p>
           <p className="mt-2 text-[15px] text-muted">
             Add a transaction to see how your spending breaks down.
           </p>
         </div>
       ) : (
-        <div className="mt-8 flex flex-col items-center gap-8 rounded-2xl border border-border bg-surface p-6 sm:flex-row sm:items-start sm:p-8">
-          <div className="flex shrink-0 flex-col items-center gap-2">
-            <CategoryDonut slices={slices} total={total} />
-            <div className="text-center">
-              <div className="font-display text-xl font-semibold text-ink">
-                {formatCurrency(total)}
-              </div>
-              <div className="text-[13px] text-muted-light">total spent</div>
-            </div>
-          </div>
+        <>
+          <Panel className="mt-8">
+            <CategoryDonut
+              slices={slices}
+              maxSlices={7}
+              onSelect={(id) =>
+                navigate(id === 'uncategorized' ? '/transactions' : `/transactions?category=${id}`)
+              }
+            />
+          </Panel>
 
-          <ul className="flex w-full flex-col gap-3">
-            {slices.map((slice) => (
-              <li key={slice.id} className="flex items-center gap-3">
-                <span
-                  className="h-3 w-3 shrink-0 rounded-full"
-                  style={{ backgroundColor: slice.color }}
-                  aria-hidden="true"
-                />
-                <span className="flex-1 text-[15px] text-ink">{slice.name}</span>
-                <span className="text-[15px] font-semibold text-ink">
-                  {formatCurrency(slice.amount)}
-                </span>
-                <span className="w-12 text-right text-[13px] text-muted-light">
-                  {total > 0 ? Math.round((slice.amount / total) * 100) : 0}%
-                </span>
-              </li>
-            ))}
-          </ul>
-        </div>
+          <Panel title="Every category" className="mt-4">
+            <table className="w-full text-[14px]">
+              <caption className="sr-only">
+                Spending by category for {format(now, 'MMMM yyyy')}
+              </caption>
+              <thead>
+                <tr className="border-b border-line text-left text-[11px] font-semibold uppercase tracking-[0.08em] text-muted">
+                  <th scope="col" className="pb-2 font-semibold">
+                    Category
+                  </th>
+                  <th scope="col" className="pb-2 text-right font-semibold">
+                    Spent
+                  </th>
+                  <th scope="col" className="pb-2 text-right font-semibold">
+                    Share
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {slices.map((s) => (
+                  <tr key={s.id} className="border-b border-line last:border-b-0">
+                    <th scope="row" className="py-2.5 pr-3 text-left font-medium text-ink">
+                      {s.name}
+                    </th>
+                    <td className="tnum py-2.5 text-right text-ink">{formatCurrency(s.amount)}</td>
+                    <td className="tnum py-2.5 text-right text-muted">
+                      {total > 0 ? Math.round((s.amount / total) * 100) : 0}%
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+              <tfoot>
+                <tr className="border-t border-line">
+                  <th scope="row" className="pt-2.5 text-left font-semibold text-ink">
+                    Total
+                  </th>
+                  <td className="tnum pt-2.5 text-right font-semibold text-ink">
+                    {formatCurrency(total)}
+                  </td>
+                  <td className="pt-2.5" />
+                </tr>
+              </tfoot>
+            </table>
+          </Panel>
+        </>
       )}
     </div>
   )

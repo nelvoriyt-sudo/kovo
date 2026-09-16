@@ -1,76 +1,165 @@
-@import url('https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700&family=Manrope:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700&family=Geist+Mono:wght@400;500;600&family=Geist:wght@400;500;600;700&display=swap');
 @import 'tailwindcss';
 
-@theme {
-  --font-display: 'Sora', system-ui, sans-serif;
-  --font-sans: 'Manrope', system-ui, sans-serif;
+/* ============================================================================
+   kovo theming
+   ----------------------------------------------------------------------------
+   A theme declares exactly two brand colors (--base and --accent) plus the text
+   color that sits on the accent. Every other surface, rule and text tone is
+   derived from those two, so the specified colors stay mathematically exact and
+   a new palette is three lines rather than a new stylesheet.
 
-  /* kovo brand: charcoal (near-black, from the logo) + tan accent (from the logo).
-     Background/surface neutrals are kept close to true neutral gray rather than
-     warm cream -- the warm-paper + brass/tan + espresso combination is one of
-     the most recognizable generic AI-default palettes, and real finance apps
-     (Monarch, YNAB, Rocket Money) all run clean near-white/neutral-gray, not
-     warm cream, in light mode. */
-  --color-ink: #1c1a17;
-  --color-ink-light: #2a2723;
-  --color-paper: #f8f8f7;
-  --color-paper-dim: #eeeeec;
-  --color-surface: #ffffff;
-  --color-on-ink: #f2ede6;
-  --color-tan: #c9a27c;
-  --color-tan-dark: #8a5a3f;
-  --color-tan-darker: #6f4830;
+   `bias` decides which of the two is the canvas: a light-bias palette paints the
+   page in its lighter color and the navigation rail in the other one.
+   ============================================================================ */
 
-  --color-border: #e2e1de;
-  --color-muted: #64605a;
-  --color-muted-light: #706b63;
-
-  --color-highlight: #fbf3e8;
-  --color-highlight-border: #e8d9c5;
-  --color-highlight-text: #4a453e;
+[data-theme='light'] {
+  --base: #f7f7f5;
+  --accent: #1c1a17;
+  --on-accent: #f2ede6;
+}
+[data-theme='dark'] {
+  --base: #121212;
+  --accent: #e8e6e1;
+  --on-accent: #121212;
+}
+[data-theme='signal'] {
+  --base: #f8f7f4;
+  --accent: #0057ff;
+  --on-accent: #ffffff;
+}
+[data-theme='nectar'] {
+  --base: #ffd6a5;
+  --accent: #6a00f4;
+  --on-accent: #ffffff;
+}
+[data-theme='heirloom'] {
+  --base: #f8e7c9;
+  --accent: #064e3b;
+  --on-accent: #ffffff;
+}
+[data-theme='afterhours'] {
+  --base: #1e1033;
+  --accent: #ff4696;
+  --on-accent: #1a0a12;
+}
+[data-theme='phosphor'] {
+  --base: #050505;
+  --accent: #d7ffe0;
+  --on-accent: #050505;
+}
+[data-theme='cypress'] {
+  --base: #152d35;
+  --accent: #d4ecdd;
+  --on-accent: #0e2027;
 }
 
-:root {
+/* Light-bias derivations: the lighter color is the canvas. */
+[data-theme='light'],
+[data-theme='signal'],
+[data-theme='nectar'],
+[data-theme='heirloom'] {
   color-scheme: light;
+  --canvas: var(--base);
+  --surface: color-mix(in oklab, var(--base) 40%, #fff);
+  --ink: color-mix(in oklab, var(--accent) 14%, #0b0b0c);
+  --muted: color-mix(in oklab, var(--ink) 58%, var(--canvas));
+  --line: color-mix(in oklab, var(--ink) 15%, var(--canvas));
+  --raise: color-mix(in oklab, var(--ink) 5%, var(--canvas));
+  --pos: #0f7b4f;
+  --neg: #c2381f;
+  --logo-ink-filter: brightness(0);
+}
+
+/* Dark-bias derivations: the darker color is the canvas. */
+[data-theme='dark'],
+[data-theme='afterhours'],
+[data-theme='phosphor'],
+[data-theme='cypress'] {
+  color-scheme: dark;
+  --canvas: var(--base);
+  --surface: color-mix(in oklab, var(--base) 92%, #fff);
+  --ink: color-mix(in oklab, var(--accent) 18%, #f7f7f5);
+  --muted: color-mix(in oklab, var(--ink) 55%, var(--canvas));
+  --line: color-mix(in oklab, var(--ink) 16%, var(--canvas));
+  --raise: color-mix(in oklab, var(--ink) 7%, var(--canvas));
+  --pos: #4ade9b;
+  --neg: #ff7a66;
+  --logo-ink-filter: brightness(0) invert(1);
+}
+
+/* The wordmark art is dark-on-transparent, so it is pushed to whichever solid
+   tone it is sitting on rather than recolored per theme. */
+/* Grouped by whether --on-accent is light or dark, which is not the same as the
+   palette's bias: the plain dark theme has a near-white accent, so its rail
+   needs the dark wordmark. */
+[data-theme='light'],
+[data-theme='signal'],
+[data-theme='nectar'],
+[data-theme='heirloom'] {
+  --logo-accent-filter: brightness(0) invert(1);
+}
+[data-theme='dark'],
+[data-theme='afterhours'],
+[data-theme='phosphor'],
+[data-theme='cypress'] {
+  --logo-accent-filter: brightness(0);
+}
+
+/* Map the derived values onto Tailwind utilities. `inline` emits utilities that
+   reference the variable rather than baking in its value, which is what lets a
+   single attribute swap repaint the whole app. */
+@theme inline {
+  --font-display: 'Bricolage Grotesque', 'Geist', system-ui, sans-serif;
+  --font-sans: 'Geist', system-ui, sans-serif;
+  --font-mono: 'Geist Mono', ui-monospace, monospace;
+
+  --color-canvas: var(--canvas);
+  --color-surface: var(--surface);
+  --color-raise: var(--raise);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-line: var(--line);
+  --color-accent: var(--accent);
+  --color-on-accent: var(--on-accent);
+  --color-pos: var(--pos);
+  --color-neg: var(--neg);
+}
+
+html {
+  background: var(--canvas);
 }
 
 body {
   margin: 0;
   font-family: var(--font-sans);
-  background: var(--color-paper);
-  color: var(--color-ink);
+  background: var(--canvas);
+  color: var(--ink);
+  -webkit-font-smoothing: antialiased;
 }
 
-/* Fallback focus ring for interactive elements that don't set their own
-   focus-visible styles (Tailwind's base reset removes the browser default).
-   Anything with its own focus-visible:ring-* utility overrides this, since
-   a class selector always beats this bare-element one. */
-button:focus-visible,
-a:focus-visible,
-[role='switch']:focus-visible,
-[role='tab']:focus-visible {
-  outline: 2px solid var(--color-tan-dark);
+/* Money and any other figure meant to be scanned in a column. */
+.tnum {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+
+/* Tailwind's reset drops the native focus ring, so anything that does not set
+   its own focus-visible treatment still needs to show one. */
+:where(button, a, [role='switch'], [role='tab'], summary):focus-visible {
+  outline: 2px solid var(--accent);
   outline-offset: 2px;
+  border-radius: 3px;
 }
 
-/* Scoped to the authenticated app shell only — the public login/legal pages
-   keep their fixed brand look regardless of the user's theme setting. */
-.theme-dark {
-  color-scheme: dark;
-  --color-ink: #f0ebe3;
-  --color-ink-light: #ddd4c5;
-  --color-paper: #17140f;
-  --color-paper-dim: #221f1a;
-  --color-surface: #201d18;
-  --color-on-ink: #1c1a17;
-  --color-tan-dark: #d9ad82;
-  --color-tan-darker: #e8c39c;
-
-  --color-border: #34302a;
-  --color-muted: #a89e90;
-  --color-muted-light: #897e70;
-
-  --color-highlight: #2a2115;
-  --color-highlight-border: #4a3a26;
-  --color-highlight-text: #e8dcc8;
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

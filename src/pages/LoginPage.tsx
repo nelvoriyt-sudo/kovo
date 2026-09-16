@@ -52,7 +52,7 @@ export function LoginPage() {
 
   return (
     <AuthLayout>
-      <h1 className="font-display text-2xl font-semibold text-ink">Welcome back</h1>
+      <h1 className="font-display text-[27px] font-semibold tracking-[-0.025em] text-ink">Welcome back</h1>
       <p className="mt-2 text-[15px] text-muted">Sign in to see this month at a glance.</p>
 
       <Button
@@ -68,13 +68,13 @@ export function LoginPage() {
 
       <div className="my-7 flex items-center gap-3.5">
         <div className="h-px flex-1 bg-border" />
-        <span className="text-xs tracking-wide text-muted-light">OR</span>
+        <span className="text-xs tracking-wide text-muted">OR</span>
         <div className="h-px flex-1 bg-border" />
       </div>
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-3.5" noValidate>
         <div className="flex flex-col gap-1.5">
-          <label htmlFor="email" className="text-[13px] font-semibold text-[#4a453e]">
+          <label htmlFor="email" className="text-[13px] font-semibold text-ink">
             Email
           </label>
           <Input
@@ -91,10 +91,10 @@ export function LoginPage() {
         </div>
         <div className="flex flex-col gap-1.5">
           <div className="flex items-center justify-between">
-            <label htmlFor="password" className="text-[13px] font-semibold text-[#4a453e]">
+            <label htmlFor="password" className="text-[13px] font-semibold text-ink">
               Password
             </label>
-            <Link to="/forgot-password" className="text-[12.5px] font-medium text-tan-dark hover:text-tan-darker">
+            <Link to="/forgot-password" className="text-[12.5px] font-medium text-accent hover:text-accent">
               Forgot?
             </Link>
           </div>
@@ -112,7 +112,7 @@ export function LoginPage() {
         </div>
 
         {error && (
-          <p ref={errorRef} role="alert" tabIndex={-1} className="text-[13px] text-red-700 outline-none">
+          <p ref={errorRef} role="alert" tabIndex={-1} className="text-[13px] text-neg outline-none">
             {error} Double-check your email and password, or{' '}
             <Link to="/forgot-password" className="font-semibold underline">
               reset it
@@ -128,18 +128,18 @@ export function LoginPage() {
 
       <p className="mt-6 text-center text-sm text-muted">
         New to kovo?{' '}
-        <Link to="/signup" className="font-semibold text-tan-dark hover:text-tan-darker">
+        <Link to="/signup" className="font-semibold text-accent hover:text-accent">
           Create an account
         </Link>
       </p>
 
-      <p className="mt-8 text-center text-xs leading-relaxed text-muted-light">
+      <p className="mt-8 text-center text-xs leading-relaxed text-muted">
         By continuing you agree to kovo's{' '}
-        <Link to="/privacy" className="text-tan-dark hover:text-tan-darker">
+        <Link to="/privacy" className="text-accent hover:text-accent">
           Privacy Policy
         </Link>{' '}
         and{' '}
-        <Link to="/terms" className="text-tan-dark hover:text-tan-darker">
+        <Link to="/terms" className="text-accent hover:text-accent">
           Terms of Use
         </Link>
       </p>

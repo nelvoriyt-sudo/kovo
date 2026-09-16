@@ -12,13 +12,12 @@ import {
   Wallet,
   type Icon,
 } from '@phosphor-icons/react'
-import { useEffect, useRef, useState, type ReactNode } from 'react'
+import { useState, type ReactNode } from 'react'
 import { NavLink } from 'react-router-dom'
 import { AddTransactionModal } from '@/components/AddTransactionModal'
 import { KovoLogo } from '@/components/KovoLogo'
 import { UserSettingsProvider } from '@/components/UserSettingsProvider'
-import { useEffectiveTheme } from '@/hooks/useEffectiveTheme'
-import { useUserSettings } from '@/hooks/useUserSettings'
+import { useApplyTheme, useEffectiveTheme } from '@/hooks/useEffectiveTheme'
 import { supabase } from '@/lib/supabase'
 import { cn } from '@/lib/utils'
 
@@ -35,8 +34,8 @@ const NAV_ITEMS: NavItem[] = [
   { to: '/settings', label: 'Settings', icon: Gear },
 ]
 
-// The 4 destinations most useful on the go get their own bottom-tab slot on mobile;
-// the rest (deeper review/config screens) live under "More".
+// The four destinations most useful on the go get their own bottom-tab slot;
+// the rest live under "More".
 const TAB_PATHS = ['/', '/calendar', '/transactions', '/spending']
 const TAB_ITEMS = TAB_PATHS.map((path) => NAV_ITEMS.find((item) => item.to === path)!)
 const MORE_ITEMS = NAV_ITEMS.filter((item) => !TAB_PATHS.includes(item.to))
@@ -52,36 +51,27 @@ export function AppShell({ children }: { children: ReactNode }) {
 function AppShellContent({ children }: { children: ReactNode }) {
   const [moreOpen, setMoreOpen] = useState(false)
   const [addOpen, setAddOpen] = useState(false)
-  const theme = useEffectiveTheme()
-  const { settings } = useUserSettings()
-  const rootRef = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    rootRef.current?.style.setProperty('--color-tan', settings.accent_color)
-  }, [settings.accent_color])
+  useApplyTheme(useEffectiveTheme())
 
   return (
-    <div
-      ref={rootRef}
-      className={cn('min-h-svh bg-paper text-ink md:flex', theme === 'dark' && 'theme-dark')}
-    >
-      {/* Sidebar — desktop only. A vertical list scales to any number of
-          destinations without the horizontal-overflow problem a top nav has. */}
-      <aside className="hidden w-60 shrink-0 flex-col border-r border-border px-4 py-6 md:flex">
-        <div className="px-2">
-          <KovoLogo className="h-6 w-auto" />
+    <div className="min-h-svh bg-canvas text-ink md:flex">
+      {/* The rail is a solid block of the palette accent. Switching palette
+          repaints the whole navigation, not just a small swatch somewhere. */}
+      <aside className="hidden w-[236px] shrink-0 flex-col gap-6 bg-accent px-4 pt-6 pb-5 text-on-accent md:flex">
+        <div className="px-2.5">
+          <KovoLogo tone="accent" className="h-[22px] w-auto" />
         </div>
 
         <button
           type="button"
           onClick={() => setAddOpen(true)}
-          className="mt-6 flex touch-manipulation items-center justify-center gap-2 rounded-[10px] bg-ink px-4 py-2.5 text-sm font-semibold text-on-ink transition-colors hover:bg-ink-light"
+          className="flex h-[42px] w-full touch-manipulation items-center justify-center gap-2 whitespace-nowrap rounded-[4px] bg-on-accent text-[13.5px] font-semibold text-accent transition-[transform,filter] duration-150 ease-out hover:-translate-y-px hover:brightness-95"
         >
           <Plus className="h-4 w-4" weight="bold" />
           Add transaction
         </button>
 
-        <nav aria-label="Primary" className="mt-6 flex flex-1 flex-col gap-0.5">
+        <nav aria-label="Primary" className="flex flex-1 flex-col gap-px">
           {NAV_ITEMS.map((item) => (
             <NavLink
               key={item.to}
@@ -89,12 +79,14 @@ function AppShellContent({ children }: { children: ReactNode }) {
               end={item.end}
               className={({ isActive }) =>
                 cn(
-                  'flex items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm font-medium text-muted transition-colors hover:bg-paper-dim hover:text-ink',
-                  isActive && 'bg-paper-dim font-semibold text-ink',
+                  'flex items-center gap-[11px] rounded-[4px] px-2.5 py-2.5 text-sm font-medium transition-colors duration-150 ease-out',
+                  isActive
+                    ? 'bg-on-accent font-semibold text-accent'
+                    : 'text-on-accent/75 hover:bg-on-accent/10 hover:text-on-accent',
                 )
               }
             >
-              <item.icon className="h-[18px] w-[18px]" weight="regular" />
+              <item.icon className="h-[17px] w-[17px] shrink-0" weight="regular" />
               {item.label}
             </NavLink>
           ))}
@@ -103,36 +95,36 @@ function AppShellContent({ children }: { children: ReactNode }) {
         <button
           type="button"
           onClick={() => supabase.auth.signOut()}
-          className="flex touch-manipulation items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm font-medium text-muted transition-colors hover:bg-paper-dim hover:text-ink"
+          className="flex touch-manipulation items-center gap-[11px] rounded-[4px] px-2.5 py-2.5 text-sm font-medium text-on-accent/70 transition-colors duration-150 ease-out hover:bg-on-accent/10 hover:text-on-accent"
         >
-          <SignOut className="h-[18px] w-[18px]" />
+          <SignOut className="h-[17px] w-[17px]" />
           Sign out
         </button>
       </aside>
 
       {/* Compact header — mobile only */}
-      <header className="border-b border-border md:hidden">
-        <div className="flex items-center justify-between px-6 py-4">
-          <KovoLogo className="h-6 w-auto" />
+      <header className="bg-accent text-on-accent md:hidden">
+        <div className="flex items-center justify-between px-5 py-3.5">
+          <KovoLogo tone="accent" className="h-[21px] w-auto" />
           <button
             type="button"
             onClick={() => setAddOpen(true)}
             aria-label="Add transaction"
-            className="flex h-10 w-10 touch-manipulation items-center justify-center rounded-full bg-ink text-on-ink"
+            className="flex h-10 w-10 touch-manipulation items-center justify-center rounded-full bg-on-accent text-accent"
           >
             <Plus className="h-5 w-5" weight="bold" />
           </button>
         </div>
       </header>
 
-      <main className="min-w-0 flex-1 px-6 py-10 pb-28 sm:px-10 md:pb-10">
-        <div className="mx-auto max-w-4xl">{children}</div>
+      <main className="min-w-0 flex-1 px-5 py-8 pb-28 sm:px-8 md:px-11 md:py-10 md:pb-16">
+        <div className="mx-auto max-w-[1080px]">{children}</div>
       </main>
 
-      {/* Bottom tab bar — mobile only, native-app-style navigation */}
+      {/* Bottom tab bar — mobile only */}
       <nav
         aria-label="Primary"
-        className="fixed inset-x-0 bottom-0 z-40 flex border-t border-border bg-surface pb-[env(safe-area-inset-bottom)] md:hidden"
+        className="fixed inset-x-0 bottom-0 z-40 flex border-t border-line bg-surface pb-[env(safe-area-inset-bottom)] md:hidden"
       >
         {TAB_ITEMS.map((item) => (
           <NavLink
@@ -141,20 +133,24 @@ function AppShellContent({ children }: { children: ReactNode }) {
             end={item.end}
             className={({ isActive }) =>
               cn(
-                'flex flex-1 touch-manipulation flex-col items-center gap-1 py-2.5 text-[11px] font-medium text-muted-light',
-                isActive && 'text-ink',
+                'flex flex-1 touch-manipulation flex-col items-center gap-1 py-2.5 text-[11px] font-medium transition-colors',
+                isActive ? 'text-accent' : 'text-muted',
               )
             }
           >
-            <item.icon className="h-5 w-5" weight="regular" />
-            {item.label}
+            {({ isActive }) => (
+              <>
+                <item.icon className="h-5 w-5" weight={isActive ? 'fill' : 'regular'} />
+                {item.label}
+              </>
+            )}
           </NavLink>
         ))}
         <button
           type="button"
           onClick={() => setMoreOpen(true)}
           aria-label="More"
-          className="flex flex-1 touch-manipulation flex-col items-center gap-1 py-2.5 text-[11px] font-medium text-muted-light"
+          className="flex flex-1 touch-manipulation flex-col items-center gap-1 py-2.5 text-[11px] font-medium text-muted"
         >
           <DotsThreeOutline className="h-5 w-5" weight="regular" />
           More
@@ -166,11 +162,11 @@ function AppShellContent({ children }: { children: ReactNode }) {
           <button
             type="button"
             aria-label="Close"
-            className="absolute inset-0 bg-ink/40"
+            className="absolute inset-0 bg-ink/50"
             onClick={() => setMoreOpen(false)}
           />
-          <div className="absolute inset-x-0 bottom-0 rounded-t-2xl border-t border-border bg-surface p-4 pb-[calc(env(safe-area-inset-bottom)+16px)]">
-            <div className="mx-auto mb-3 h-1 w-10 rounded-full bg-border" />
+          <div className="absolute inset-x-0 bottom-0 rounded-t-[10px] border-t border-line bg-surface p-4 pb-[calc(env(safe-area-inset-bottom)+16px)]">
+            <div className="mx-auto mb-3 h-1 w-10 rounded-full bg-line" />
             <div className="flex flex-col gap-1">
               {MORE_ITEMS.map((item) => (
                 <NavLink
@@ -180,8 +176,8 @@ function AppShellContent({ children }: { children: ReactNode }) {
                   onClick={() => setMoreOpen(false)}
                   className={({ isActive }) =>
                     cn(
-                      'flex touch-manipulation items-center gap-3 rounded-lg px-3 py-3 text-[15px] font-medium text-ink',
-                      isActive && 'bg-paper-dim',
+                      'flex touch-manipulation items-center gap-3 rounded-[4px] px-3 py-3 text-[15px] font-medium text-ink',
+                      isActive && 'bg-raise',
                     )
                   }
                 >
@@ -195,7 +191,7 @@ function AppShellContent({ children }: { children: ReactNode }) {
                   setMoreOpen(false)
                   supabase.auth.signOut()
                 }}
-                className="touch-manipulation rounded-lg px-3 py-3 text-left text-[15px] font-medium text-[#a34c3f]"
+                className="touch-manipulation rounded-[4px] px-3 py-3 text-left text-[15px] font-medium text-neg"
               >
                 Sign out
               </button>

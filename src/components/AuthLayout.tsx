@@ -3,36 +3,48 @@ import { KovoLogo } from './KovoLogo'
 
 export function AuthLayout({ children }: { children: ReactNode }) {
   return (
-    <div className="flex min-h-svh w-full bg-paper">
-      <div className="relative hidden w-[480px] shrink-0 flex-col justify-between overflow-hidden bg-ink p-14 lg:flex xl:w-[560px]">
+    <div className="flex min-h-svh w-full bg-canvas">
+      <div className="relative hidden w-[46%] max-w-[620px] shrink-0 flex-col justify-between overflow-hidden bg-accent p-12 text-on-accent lg:flex">
+        <KovoLogo tone="accent" className="relative h-[22px] w-auto" />
+
+        <div className="relative">
+          <p className="max-w-[15ch] font-display text-[40px] font-semibold leading-[1.08] tracking-[-0.03em]">
+            Your money, finally in focus.
+          </p>
+          <p className="mt-4 max-w-[34ch] text-[15px] leading-relaxed text-on-accent/80">
+            Every account, every category, one picture — built for the handful of people you
+            actually share a budget with.
+          </p>
+        </div>
+
+        <p className="relative text-[13.5px] text-on-accent/70">
+          A private ledger for you and yours.
+        </p>
+
+        {/* The split-disc brand device, the same motif as the palette swatches. */}
         <svg
-          viewBox="0 0 560 900"
-          className="pointer-events-none absolute inset-0 h-full w-full"
+          viewBox="0 0 100 100"
           aria-hidden="true"
+          className="pointer-events-none absolute -bottom-24 -right-24 h-[360px] w-[360px] opacity-[0.16]"
         >
-          <circle cx="480" cy="120" r="220" fill="none" stroke="#c9a27c" strokeOpacity="0.14" />
-          <circle cx="480" cy="120" r="300" fill="none" stroke="#c9a27c" strokeOpacity="0.09" />
-          <line x1="0" y1="700" x2="560" y2="560" stroke="#c9a27c" strokeOpacity="0.1" />
-          <line x1="0" y1="780" x2="560" y2="640" stroke="#c9a27c" strokeOpacity="0.1" />
+          <defs>
+            <clipPath id="auth-disc-a">
+              <path d="M-10,-10 L110,-10 L110,110 Z" />
+            </clipPath>
+            <clipPath id="auth-disc-b">
+              <path d="M-10,-10 L-10,110 L110,110 Z" />
+            </clipPath>
+          </defs>
+          <circle cx="53" cy="47" r="46" fill="currentColor" clipPath="url(#auth-disc-a)" />
+          <circle
+            cx="47"
+            cy="53"
+            r="46"
+            fill="currentColor"
+            opacity="0.45"
+            clipPath="url(#auth-disc-b)"
+          />
         </svg>
-
-        <div className="relative">
-          <span className="font-display text-xl font-semibold tracking-wide text-paper-dim">
-            kovo
-          </span>
-        </div>
-
-        <div className="relative">
-          <p className="mb-4 max-w-[400px] font-display text-3xl font-semibold leading-snug text-paper-dim">
-            See your money move, not just where it went.
-          </p>
-          <p className="max-w-[360px] text-[15px] leading-relaxed text-[#b3aa9f]">
-            Kovo turns your spreadsheet into a picture — spending, income, and budgets, at a
-            glance.
-          </p>
-        </div>
-
-        <p className="relative text-sm text-[#948b81]">A private ledger for you and yours.</p>
       </div>
 
       <div className="flex flex-1 items-center justify-center p-6 sm:p-10">

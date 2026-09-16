@@ -57,13 +57,13 @@ export function PlaidConnectButton({ onLinked }: { onLinked: () => void }) {
         type="button"
         onClick={fetchLinkToken}
         disabled={loading}
-        className="flex touch-manipulation items-center gap-2 rounded-[10px] border border-border bg-surface px-4 py-2.5 text-sm font-semibold text-ink transition-colors hover:bg-paper-dim disabled:cursor-not-allowed disabled:opacity-60"
+        className="flex touch-manipulation items-center gap-2 rounded-[5px] border border-line bg-surface px-4 py-2.5 text-sm font-semibold text-ink transition-colors hover:bg-raise disabled:cursor-not-allowed disabled:opacity-60"
       >
         <Bank className="h-4 w-4" />
         {loading ? 'Connecting…' : 'Connect a bank (sandbox)'}
       </button>
       {error && (
-        <p role="alert" className="mt-2 text-[13px] text-[#a34c3f]">
+        <p role="alert" className="mt-2 text-[13px] text-neg">
           {error}
         </p>
       )}

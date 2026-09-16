@@ -78,8 +78,8 @@ export function SetPayPeriodModal({
         </p>
 
         <div className="flex flex-col gap-1.5">
-          <label htmlFor="sched-label" className="text-[13px] font-semibold text-[#4a453e]">
-            Label <span className="font-normal text-muted-light">(optional)</span>
+          <label htmlFor="sched-label" className="text-[13px] font-semibold text-ink">
+            Label <span className="font-normal text-muted">(optional)</span>
           </label>
           <Input
             id="sched-label"
@@ -90,7 +90,7 @@ export function SetPayPeriodModal({
         </div>
 
         <div className="flex flex-col gap-1.5">
-          <label htmlFor="sched-type" className="text-[13px] font-semibold text-[#4a453e]">
+          <label htmlFor="sched-type" className="text-[13px] font-semibold text-ink">
             Type
           </label>
           <Select id="sched-type" value={type} onChange={(e) => setType(e.target.value as 'pay' | 'tip_out')}>
@@ -100,7 +100,7 @@ export function SetPayPeriodModal({
         </div>
 
         <div className="flex flex-col gap-1.5">
-          <label htmlFor="sched-frequency" className="text-[13px] font-semibold text-[#4a453e]">
+          <label htmlFor="sched-frequency" className="text-[13px] font-semibold text-ink">
             Frequency
           </label>
           <Select
@@ -117,7 +117,7 @@ export function SetPayPeriodModal({
         </div>
 
         <div className="flex flex-col gap-1.5">
-          <label htmlFor="sched-anchor" className="text-[13px] font-semibold text-[#4a453e]">
+          <label htmlFor="sched-anchor" className="text-[13px] font-semibold text-ink">
             {frequency === 'custom' ? 'Date' : 'Next (or most recent) date'}
           </label>
           <Input
@@ -130,7 +130,7 @@ export function SetPayPeriodModal({
         </div>
 
         {error && (
-          <p role="alert" className="text-[13px] text-red-700">
+          <p role="alert" className="text-[13px] text-neg">
             {error}
           </p>
         )}

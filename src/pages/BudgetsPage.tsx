@@ -22,13 +22,13 @@ export function BudgetsPage() {
 
   return (
     <div>
-      <h1 className="font-display text-2xl font-semibold text-ink">Budgets</h1>
+      <h1 className="font-display text-[27px] font-semibold tracking-[-0.025em] text-ink">Budgets</h1>
       <p className="mt-1 text-[15px] text-muted">{format(now, 'MMMM yyyy')}</p>
 
       {loading ? (
         <p className="mt-10 text-[15px] text-muted">Loading…</p>
       ) : (
-        <div className="mt-8 flex flex-col gap-3">
+        <div className="mt-8 rounded-[4px] border border-line bg-surface px-5 py-4 sm:px-6">
           {expenseCategories.map((c) => {
             const budget = budgets.find((b) => b.category_id === c.id)
             return (

@@ -32,23 +32,21 @@ export function CalendarPage() {
     <div>
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="font-display text-2xl font-semibold text-ink">Pay-period calendar</h1>
-          <p className="mt-1 text-[15px] text-muted">
-            Red = pay, green = tip-out, tan = other income
-          </p>
+          <h1 className="font-display text-[27px] font-semibold tracking-[-0.025em] text-ink">Pay-period calendar</h1>
+          <p className="mt-1 text-[15px] text-muted">Pay, tip-outs and other income you've scheduled.</p>
         </div>
         <Button type="button" className="w-auto px-4" onClick={() => setSetPayOpen(true)}>
           Set pay period
         </Button>
       </div>
 
-      <div className="mt-8 rounded-2xl border border-border bg-surface p-6">
+      <div className="mt-8 rounded-[4px] border border-line bg-surface p-5 sm:p-6">
         <div className="mb-4 flex items-center justify-between">
           <button
             type="button"
             aria-label="Previous month"
             onClick={() => setMonthDate((d) => subMonths(d, 1))}
-            className="touch-manipulation rounded-full p-2 hover:bg-paper-dim"
+            className="touch-manipulation rounded-full p-2 hover:bg-raise"
           >
             <CaretLeft className="h-[18px] w-[18px]" aria-hidden="true" />
           </button>
@@ -57,7 +55,7 @@ export function CalendarPage() {
             type="button"
             aria-label="Next month"
             onClick={() => setMonthDate((d) => addMonths(d, 1))}
-            className="touch-manipulation rounded-full p-2 hover:bg-paper-dim"
+            className="touch-manipulation rounded-full p-2 hover:bg-raise"
           >
             <CaretRight className="h-[18px] w-[18px]" aria-hidden="true" />
           </button>

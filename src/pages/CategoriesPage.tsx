@@ -15,7 +15,7 @@ export function CategoriesPage() {
 
   return (
     <div className="max-w-2xl">
-      <h1 className="font-display text-2xl font-semibold text-ink">Categories</h1>
+      <h1 className="font-display text-[27px] font-semibold tracking-[-0.025em] text-ink">Categories</h1>
       <p className="mt-1 text-[15px] text-muted">
         Rename, recolor, add, or remove the categories your transactions use.
       </p>
@@ -69,7 +69,7 @@ function CategoryGroup({
 
   return (
     <section>
-      <h2 className="mb-3 text-[13px] font-semibold uppercase tracking-wide text-muted-light">{title}</h2>
+      <h2 className="mb-3 text-[13px] font-semibold uppercase tracking-wide text-muted">{title}</h2>
       <div className="flex flex-col gap-2">
         {items.map((c) => (
           <CategoryRow key={c.id} category={c} onRename={onRename} onRecolor={onRecolor} onDelete={onDelete} />
@@ -115,17 +115,17 @@ function CategoryRow({
   const color = category.color ?? '#a49b8f'
 
   return (
-    <div className="flex items-center gap-3 rounded-xl border border-border bg-surface p-3">
+    <div className="flex items-center gap-3 rounded-[4px] border border-line bg-surface p-3">
       <div className="relative">
         <button
           type="button"
           aria-label={`Change color for ${category.name}`}
           onClick={() => setPickerOpen((v) => !v)}
-          className="h-6 w-6 touch-manipulation rounded-full border border-border"
+          className="h-6 w-6 touch-manipulation rounded-full border border-line"
           style={{ backgroundColor: color }}
         />
         {pickerOpen && (
-          <div className="absolute left-0 top-8 z-10 flex w-40 flex-wrap gap-1.5 rounded-xl border border-border bg-surface p-2 shadow-lg">
+          <div className="absolute left-0 top-8 z-10 flex w-40 flex-wrap gap-1.5 rounded-[4px] border border-line bg-surface p-2 shadow-lg">
             {CATEGORY_PALETTE.map((c) => (
               <button
                 key={c}
@@ -179,7 +179,7 @@ function CategoryRow({
               onDelete(category.id)
             }
           }}
-          className="touch-manipulation rounded-full p-1.5 text-muted-light hover:bg-paper-dim hover:text-[#a34c3f]"
+          className="touch-manipulation rounded-full p-1.5 text-muted hover:bg-raise hover:text-neg"
         >
           <TrashSimple className="h-4 w-4" aria-hidden="true" />
         </button>

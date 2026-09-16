@@ -68,7 +68,7 @@ export function SignupPage() {
   if (confirmationSent) {
     return (
       <AuthLayout>
-        <h1 className="font-display text-2xl font-semibold text-ink">Almost there</h1>
+        <h1 className="font-display text-[27px] font-semibold tracking-[-0.025em] text-ink">Almost there</h1>
         <p className="mt-2 text-[15px] text-muted">
           If <span className="font-semibold text-ink">{email}</span> is new, we've sent a
           confirmation link — follow it to finish creating your account.
@@ -76,12 +76,12 @@ export function SignupPage() {
         <p className="mt-3 text-[15px] text-muted">
           Already have an account with this email? Nothing was sent, and no email address needs
           to log in twice. Try{' '}
-          <Link to="/login" className="font-semibold text-tan-dark hover:text-tan-darker">
+          <Link to="/login" className="font-semibold text-accent hover:text-accent">
             signing in
           </Link>{' '}
           instead, or use "Continue with Google" if that's how you originally signed up.
         </p>
-        <Link to="/login" className="mt-8 inline-block text-sm font-semibold text-tan-dark hover:text-tan-darker">
+        <Link to="/login" className="mt-8 inline-block text-sm font-semibold text-accent hover:text-accent">
           Back to sign in
         </Link>
       </AuthLayout>
@@ -90,7 +90,7 @@ export function SignupPage() {
 
   return (
     <AuthLayout>
-      <h1 className="font-display text-2xl font-semibold text-ink">Create your account</h1>
+      <h1 className="font-display text-[27px] font-semibold tracking-[-0.025em] text-ink">Create your account</h1>
       <p className="mt-2 text-[15px] text-muted">A few seconds, then you're in.</p>
 
       <Button
@@ -106,13 +106,13 @@ export function SignupPage() {
 
       <div className="my-7 flex items-center gap-3.5">
         <div className="h-px flex-1 bg-border" />
-        <span className="text-xs tracking-wide text-muted-light">OR</span>
+        <span className="text-xs tracking-wide text-muted">OR</span>
         <div className="h-px flex-1 bg-border" />
       </div>
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-3.5" noValidate>
         <div className="flex flex-col gap-1.5">
-          <label htmlFor="displayName" className="text-[13px] font-semibold text-[#4a453e]">
+          <label htmlFor="displayName" className="text-[13px] font-semibold text-ink">
             Name
           </label>
           <Input
@@ -127,7 +127,7 @@ export function SignupPage() {
           />
         </div>
         <div className="flex flex-col gap-1.5">
-          <label htmlFor="email" className="text-[13px] font-semibold text-[#4a453e]">
+          <label htmlFor="email" className="text-[13px] font-semibold text-ink">
             Email
           </label>
           <Input
@@ -143,7 +143,7 @@ export function SignupPage() {
           />
         </div>
         <div className="flex flex-col gap-1.5">
-          <label htmlFor="password" className="text-[13px] font-semibold text-[#4a453e]">
+          <label htmlFor="password" className="text-[13px] font-semibold text-ink">
             Password
           </label>
           <Input
@@ -165,23 +165,23 @@ export function SignupPage() {
             type="checkbox"
             checked={agreed}
             onChange={(e) => setAgreed(e.target.checked)}
-            className="mt-0.5 h-4 w-4 shrink-0 rounded border-border text-ink focus-visible:ring-2 focus-visible:ring-tan-dark"
+            className="mt-0.5 h-4 w-4 shrink-0 rounded border-line text-ink focus-visible:ring-2 focus-visible:ring-accent"
             required
           />
           <span>
             I agree to kovo's{' '}
-            <Link to="/privacy" className="font-medium text-tan-dark hover:text-tan-darker">
+            <Link to="/privacy" className="font-medium text-accent hover:text-accent">
               Privacy Policy
             </Link>{' '}
             and{' '}
-            <Link to="/terms" className="font-medium text-tan-dark hover:text-tan-darker">
+            <Link to="/terms" className="font-medium text-accent hover:text-accent">
               Terms of Use
             </Link>
           </span>
         </label>
 
         {error && (
-          <p ref={errorRef} role="alert" tabIndex={-1} className="text-[13px] text-red-700 outline-none">
+          <p ref={errorRef} role="alert" tabIndex={-1} className="text-[13px] text-neg outline-none">
             {error}
           </p>
         )}
@@ -193,7 +193,7 @@ export function SignupPage() {
 
       <p className="mt-6 text-center text-sm text-muted">
         Already have an account?{' '}
-        <Link to="/login" className="font-semibold text-tan-dark hover:text-tan-darker">
+        <Link to="/login" className="font-semibold text-accent hover:text-accent">
           Sign in
         </Link>
       </p>

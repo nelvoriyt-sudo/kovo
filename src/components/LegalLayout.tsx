@@ -4,8 +4,8 @@ import { KovoLogo } from './KovoLogo'
 
 export function LegalLayout({ title, children }: { title: string; children: ReactNode }) {
   return (
-    <div className="min-h-svh bg-paper">
-      <header className="border-b border-border px-6 py-4 sm:px-10">
+    <div className="min-h-svh bg-canvas">
+      <header className="border-b border-line px-6 py-4 sm:px-10">
         <Link to="/" className="inline-block w-fit">
           <KovoLogo className="h-6 w-auto" />
         </Link>
@@ -17,7 +17,7 @@ export function LegalLayout({ title, children }: { title: string; children: Reac
         </div>
         <Link
           to="/login"
-          className="mt-12 inline-block text-sm font-semibold text-tan-dark hover:text-tan-darker"
+          className="mt-12 inline-block text-sm font-semibold text-accent hover:text-accent"
         >
           ← Back to sign in
         </Link>

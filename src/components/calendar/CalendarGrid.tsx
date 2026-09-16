@@ -32,7 +32,7 @@ export function CalendarGrid({
 
   return (
     <div>
-      <div className="grid grid-cols-7 gap-1 pb-2 text-center text-[12px] font-semibold text-muted-light">
+      <div className="grid grid-cols-7 gap-1 pb-2 text-center text-[12px] font-semibold text-muted">
         {WEEKDAY_LABELS.map((d, i) => (
           <div key={i}>{d}</div>
         ))}
@@ -50,14 +50,14 @@ export function CalendarGrid({
               type="button"
               onClick={() => onSelectDay(day)}
               className={cn(
-                'flex touch-manipulation flex-col items-center gap-1 rounded-lg py-2 text-[13px] transition-colors hover:bg-paper-dim',
-                inMonth ? 'text-ink' : 'text-muted-light/60',
+                'flex touch-manipulation flex-col items-center gap-1 rounded-lg py-2 text-[13px] transition-colors hover:bg-raise',
+                inMonth ? 'text-ink' : 'text-muted/60',
               )}
             >
               <span
                 className={cn(
                   'flex h-6 w-6 items-center justify-center rounded-full',
-                  isToday && 'bg-ink font-semibold text-on-ink',
+                  isToday && 'bg-accent font-semibold text-on-accent',
                 )}
               >
                 {format(day, 'd')}
@@ -68,9 +68,9 @@ export function CalendarGrid({
                     key={e.id}
                     className={cn(
                       'h-1.5 w-1.5 rounded-full',
-                      e.type === 'pay' && 'bg-[#a34c3f]',
-                      e.type === 'tip_out' && 'bg-[#4d7358]',
-                      e.type === 'other' && 'bg-tan',
+                      e.type === 'pay' && 'bg-neg',
+                      e.type === 'tip_out' && 'bg-pos',
+                      e.type === 'other' && 'bg-accent',
                     )}
                   />
                 ))}

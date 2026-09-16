@@ -3,7 +3,7 @@ import { LegalLayout } from '@/components/LegalLayout'
 export function TermsPage() {
   return (
     <LegalLayout title="Terms of Use">
-      <p className="text-xs text-muted-light">
+      <p className="text-xs text-muted">
         Draft — last updated {new Date().toISOString().slice(0, 10)}. Review and personalize this
         before sharing kovo with anyone.
       </p>

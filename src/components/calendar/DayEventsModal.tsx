@@ -146,14 +146,14 @@ function EventRow({
   const formatCurrency = useFormatCurrency()
   const [editing, setEditing] = useState(false)
   const [value, setValue] = useState(event.amount?.toString() ?? '')
-  const dotColor = event.type === 'pay' ? 'bg-[#a34c3f]' : event.type === 'tip_out' ? 'bg-[#4d7358]' : 'bg-tan'
+  const dotColor = event.type === 'pay' ? 'bg-neg' : event.type === 'tip_out' ? 'bg-pos' : 'bg-accent'
 
   return (
-    <div className="flex items-center gap-3 rounded-xl border border-border p-3">
+    <div className="flex items-center gap-3 rounded-[4px] border border-line p-3">
       <span className={`h-2.5 w-2.5 shrink-0 rounded-full ${dotColor}`} aria-hidden="true" />
       <div className="flex-1">
         <div className="text-[14px] font-semibold text-ink">{TYPE_LABEL[event.type]}</div>
-        {event.note && <div className="text-[12.5px] text-muted-light">{event.note}</div>}
+        {event.note && <div className="text-[12.5px] text-muted">{event.note}</div>}
       </div>
       {editing ? (
         <div className="flex items-center gap-2">
@@ -182,7 +182,7 @@ function EventRow({
         <button
           type="button"
           onClick={() => setEditing(true)}
-          className="text-[14px] font-semibold text-tan-dark hover:text-tan-darker"
+          className="text-[14px] font-semibold text-accent hover:text-accent"
         >
           {event.amount != null ? formatCurrency(event.amount) : 'Add amount'}
         </button>
@@ -191,7 +191,7 @@ function EventRow({
         type="button"
         aria-label="Delete"
         onClick={onDelete}
-        className="touch-manipulation rounded-full p-1.5 text-muted-light hover:bg-paper-dim hover:text-[#a34c3f]"
+        className="touch-manipulation rounded-full p-1.5 text-muted hover:bg-raise hover:text-neg"
       >
         <TrashSimple className="h-4 w-4" aria-hidden="true" />
       </button>
@@ -212,7 +212,7 @@ function AddEventForm({
   const [note, setNote] = useState('')
 
   return (
-    <div className="mt-2 flex flex-col gap-2 rounded-xl border border-dashed border-border p-3">
+    <div className="mt-2 flex flex-col gap-2 rounded-[4px] border border-dashed border-line p-3">
       <div className="flex gap-2">
         <Select value={type} onChange={(e) => onTypeChange(e.target.value as IncomeEvent['type'])} className="h-10">
           <option value="pay">Pay</option>

@@ -1,19 +1,19 @@
 import { forwardRef, type ButtonHTMLAttributes } from 'react'
 import { cn } from '@/lib/utils'
 
-type ButtonVariant = 'primary' | 'secondary'
+type ButtonVariant = 'primary' | 'secondary' | 'ghost'
 
 type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
   variant?: ButtonVariant
 }
 
 const base =
-  'touch-manipulation inline-flex h-12 w-full items-center justify-center gap-2.5 rounded-[10px] px-4 text-[15px] font-semibold font-sans transition-colors disabled:cursor-not-allowed disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-tan-dark'
+  'inline-flex h-12 w-full touch-manipulation items-center justify-center gap-2.5 rounded-[4px] px-4 font-sans text-[15px] font-semibold transition-[transform,background-color,filter] duration-150 ease-out disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0'
 
 const variants: Record<ButtonVariant, string> = {
-  primary: 'bg-ink text-on-ink hover:bg-ink-light',
-  secondary:
-    'border border-border bg-surface text-ink hover:bg-paper-dim/60',
+  primary: 'bg-accent text-on-accent hover:-translate-y-px hover:brightness-110',
+  secondary: 'border border-line bg-surface text-ink hover:-translate-y-px hover:bg-raise',
+  ghost: 'text-muted hover:bg-raise hover:text-ink',
 }
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
