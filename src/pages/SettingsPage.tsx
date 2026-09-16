@@ -52,7 +52,7 @@ export function SettingsPage() {
                 style={{ backgroundColor: color }}
               />
             ))}
-            <label className="relative flex h-9 w-9 touch-manipulation items-center justify-center rounded-full border border-dashed border-border text-muted-light">
+            <label className="relative flex h-9 w-9 touch-manipulation items-center justify-center rounded-full border border-dashed border-border text-muted-light has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-tan-dark has-[:focus-visible]:ring-offset-2">
               <span aria-hidden="true" className="text-lg leading-none">+</span>
               <span className="sr-only">Pick a custom accent color</span>
               <input

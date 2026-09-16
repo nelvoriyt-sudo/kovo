@@ -36,6 +36,18 @@ body {
   color: var(--color-ink);
 }
 
+/* Fallback focus ring for interactive elements that don't set their own
+   focus-visible styles (Tailwind's base reset removes the browser default).
+   Anything with its own focus-visible:ring-* utility overrides this, since
+   a class selector always beats this bare-element one. */
+button:focus-visible,
+a:focus-visible,
+[role='switch']:focus-visible,
+[role='tab']:focus-visible {
+  outline: 2px solid var(--color-tan-dark);
+  outline-offset: 2px;
+}
+
 /* Scoped to the authenticated app shell only — the public login/legal pages
    keep their fixed brand look regardless of the user's theme setting. */
 .theme-dark {
