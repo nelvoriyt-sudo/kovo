@@ -46,12 +46,12 @@ export function MonthlyTrendChart({
               <div className="flex h-full w-full items-end justify-center gap-[3px] px-1">
                 <span
                   aria-hidden="true"
-                  className="block w-1/2 max-w-[15px] rounded-t-[3px] bg-[color-mix(in_oklab,var(--ink)_45%,var(--canvas))] transition-[height] duration-500 ease-out"
+                  className="block w-1/2 max-w-[24px] rounded-t-[3px] bg-[color-mix(in_oklab,var(--ink)_45%,var(--canvas))] transition-[height] duration-500 ease-out"
                   style={{ height: `${Math.max((p.income / max) * 100, p.income > 0 ? 1.5 : 0)}%` }}
                 />
                 <span
                   aria-hidden="true"
-                  className="block w-1/2 max-w-[15px] rounded-t-[3px] bg-accent transition-[height] duration-500 ease-out"
+                  className="block w-1/2 max-w-[24px] rounded-t-[3px] bg-accent transition-[height] duration-500 ease-out"
                   style={{
                     height: `${Math.max((p.expenses / max) * 100, p.expenses > 0 ? 1.5 : 0)}%`,
                   }}

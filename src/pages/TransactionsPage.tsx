@@ -57,13 +57,13 @@ export function TransactionsPage() {
         </p>
       </header>
 
-      <div className="mt-6 grid grid-cols-2 gap-2.5 sm:grid-cols-3 lg:grid-cols-6">
+      <div className="mt-6 grid grid-cols-2 gap-2.5 sm:grid-cols-3 lg:grid-cols-5">
         <Input
           placeholder="Search description…"
           aria-label="Search description"
           value={filters.search}
           onChange={(e) => update('search', e.target.value)}
-          className="col-span-2 sm:col-span-3 lg:col-span-2"
+          className="col-span-2 sm:col-span-3 lg:col-span-5"
         />
         <Select
           aria-label="Category"
