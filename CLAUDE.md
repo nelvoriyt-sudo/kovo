@@ -2,7 +2,7 @@
 
 Personal finance tracker for Jaiden plus a small group of friends and family, replacing an Excel spreadsheet. Main goal is visualization — the data is already tracked fine in Excel, the point is to see it (charts, trends, breakdowns) instead of reading rows of numbers.
 
-Jaiden does not code. Act as lead developer: fix errors you find rather than just reporting them. After finishing a piece of work, report back everything changed and any action needed from Jaiden, then list next steps as a to-do and wait for the go-ahead before starting the next round.
+He does not code. Act as lead developer: fix errors you find rather than just reporting them. After finishing a piece of work, report back everything changed and any action needed from Jaiden, then list next steps as a to-do and wait for the go-ahead before starting the next round.
 
 ## Stack
 
