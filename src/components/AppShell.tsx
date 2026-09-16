@@ -31,9 +31,11 @@ const NAV_ITEMS = [
   { to: '/settings', label: 'Settings', icon: SettingsIcon },
 ]
 
-// The 4 most-used destinations get their own bottom-tab slot on mobile; the rest live under "More".
-const TAB_ITEMS = NAV_ITEMS.slice(0, 4)
-const MORE_ITEMS = NAV_ITEMS.slice(4)
+// The 4 destinations most useful on the go get their own bottom-tab slot on mobile;
+// the rest (deeper review/config screens) live under "More".
+const TAB_PATHS = ['/', '/calendar', '/transactions', '/spending']
+const TAB_ITEMS = TAB_PATHS.map((path) => NAV_ITEMS.find((item) => item.to === path)!)
+const MORE_ITEMS = NAV_ITEMS.filter((item) => !TAB_PATHS.includes(item.to))
 
 export function AppShell({ children }: { children: ReactNode }) {
   const [moreOpen, setMoreOpen] = useState(false)
