@@ -7,14 +7,30 @@ const PLAID_BASE_URL = Deno.env.get('PLAID_ENV') === 'production'
   ? 'https://production.plaid.com'
   : 'https://sandbox.plaid.com'
 
+const CORS_HEADERS = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+}
+
+function json(body: unknown, status = 200) {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { 'Content-Type': 'application/json', ...CORS_HEADERS },
+  })
+}
+
 Deno.serve(async (req: Request) => {
+  if (req.method === 'OPTIONS') {
+    return new Response(null, { headers: CORS_HEADERS })
+  }
   if (req.method !== 'POST') {
-    return new Response(JSON.stringify({ error: 'Method not allowed' }), { status: 405 })
+    return json({ error: 'Method not allowed' }, 405)
   }
 
   const authHeader = req.headers.get('Authorization')
   if (!authHeader) {
-    return new Response(JSON.stringify({ error: 'Missing authorization' }), { status: 401 })
+    return json({ error: 'Missing authorization' }, 401)
   }
 
   const supabase = createClient(
@@ -25,13 +41,13 @@ Deno.serve(async (req: Request) => {
 
   const { data: userData, error: userError } = await supabase.auth.getUser()
   if (userError || !userData.user) {
-    return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 })
+    return json({ error: 'Unauthorized' }, 401)
   }
 
   const plaidClientId = Deno.env.get('PLAID_CLIENT_ID')
   const plaidSecret = Deno.env.get('PLAID_SECRET')
   if (!plaidClientId || !plaidSecret) {
-    return new Response(JSON.stringify({ error: 'Plaid is not configured' }), { status: 500 })
+    return json({ error: 'Plaid is not configured' }, 500)
   }
 
   const plaidRes = await fetch(`${PLAID_BASE_URL}/link/token/create`, {
@@ -51,13 +67,8 @@ Deno.serve(async (req: Request) => {
 
   const plaidData = await plaidRes.json()
   if (!plaidRes.ok) {
-    return new Response(
-      JSON.stringify({ error: plaidData.error_message ?? 'Plaid request failed' }),
-      { status: 502 },
-    )
+    return json({ error: plaidData.error_message ?? 'Plaid request failed' }, 502)
   }
 
-  return new Response(JSON.stringify({ link_token: plaidData.link_token }), {
-    headers: { 'Content-Type': 'application/json' },
-  })
+  return json({ link_token: plaidData.link_token })
 })

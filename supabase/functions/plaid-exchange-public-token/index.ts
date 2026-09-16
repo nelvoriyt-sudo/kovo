@@ -34,14 +34,30 @@ type PlaidAccount = {
   balances: { current: number | null }
 }
 
+const CORS_HEADERS = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+}
+
+function json(body: unknown, status = 200) {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { 'Content-Type': 'application/json', ...CORS_HEADERS },
+  })
+}
+
 Deno.serve(async (req: Request) => {
+  if (req.method === 'OPTIONS') {
+    return new Response(null, { headers: CORS_HEADERS })
+  }
   if (req.method !== 'POST') {
-    return new Response(JSON.stringify({ error: 'Method not allowed' }), { status: 405 })
+    return json({ error: 'Method not allowed' }, 405)
   }
 
   const authHeader = req.headers.get('Authorization')
   if (!authHeader) {
-    return new Response(JSON.stringify({ error: 'Missing authorization' }), { status: 401 })
+    return json({ error: 'Missing authorization' }, 401)
   }
 
   const supabase = createClient(
@@ -52,20 +68,20 @@ Deno.serve(async (req: Request) => {
 
   const { data: userData, error: userError } = await supabase.auth.getUser()
   if (userError || !userData.user) {
-    return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 })
+    return json({ error: 'Unauthorized' }, 401)
   }
 
   const body = await req.json().catch(() => null)
   const publicToken = body?.public_token
   if (typeof publicToken !== 'string' || !publicToken) {
-    return new Response(JSON.stringify({ error: 'Missing public_token' }), { status: 400 })
+    return json({ error: 'Missing public_token' }, 400)
   }
 
   const plaidClientId = Deno.env.get('PLAID_CLIENT_ID')
   const plaidSecret = Deno.env.get('PLAID_SECRET')
   const encryptionKey = Deno.env.get('PLAID_ENCRYPTION_KEY')
   if (!plaidClientId || !plaidSecret || !encryptionKey) {
-    return new Response(JSON.stringify({ error: 'Plaid is not configured' }), { status: 500 })
+    return json({ error: 'Plaid is not configured' }, 500)
   }
 
   const exchangeRes = await fetch(`${PLAID_BASE_URL}/item/public_token/exchange`, {
@@ -75,10 +91,7 @@ Deno.serve(async (req: Request) => {
   })
   const exchangeData = await exchangeRes.json()
   if (!exchangeRes.ok) {
-    return new Response(
-      JSON.stringify({ error: exchangeData.error_message ?? 'Plaid exchange failed' }),
-      { status: 502 },
-    )
+    return json({ error: exchangeData.error_message ?? 'Plaid exchange failed' }, 502)
   }
 
   const accessToken: string = exchangeData.access_token
@@ -91,10 +104,7 @@ Deno.serve(async (req: Request) => {
   })
   const accountsData = await accountsRes.json()
   if (!accountsRes.ok) {
-    return new Response(
-      JSON.stringify({ error: accountsData.error_message ?? 'Plaid accounts fetch failed' }),
-      { status: 502 },
-    )
+    return json({ error: accountsData.error_message ?? 'Plaid accounts fetch failed' }, 502)
   }
 
   const encryptedToken = await encrypt(accessToken, encryptionKey)
@@ -112,11 +122,9 @@ Deno.serve(async (req: Request) => {
   if (rows.length > 0) {
     const { error: insertError } = await supabase.from('accounts').insert(rows)
     if (insertError) {
-      return new Response(JSON.stringify({ error: insertError.message }), { status: 500 })
+      return json({ error: insertError.message }, 500)
     }
   }
 
-  return new Response(JSON.stringify({ success: true, accounts_linked: rows.length }), {
-    headers: { 'Content-Type': 'application/json' },
-  })
+  return json({ success: true, accounts_linked: rows.length })
 })
