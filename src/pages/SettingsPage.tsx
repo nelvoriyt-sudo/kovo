@@ -1,5 +1,7 @@
 import { Link } from 'react-router-dom'
+import { PlaidConnectButton } from '@/components/PlaidConnectButton'
 import { Select } from '@/components/ui/Select'
+import { useAccounts } from '@/hooks/useAccounts'
 import { useUserSettings } from '@/hooks/useUserSettings'
 import { cn } from '@/lib/utils'
 
@@ -10,6 +12,7 @@ const DATE_FORMATS = ['MM/DD/YYYY', 'DD/MM/YYYY', 'YYYY-MM-DD']
 
 export function SettingsPage() {
   const { settings, updateSettings } = useUserSettings()
+  const { accounts, loading: accountsLoading, refresh: refreshAccounts } = useAccounts()
 
   return (
     <div className="max-w-lg">
@@ -17,6 +20,37 @@ export function SettingsPage() {
       <p className="mt-1 text-[15px] text-muted">Personalize how kovo looks and formats numbers.</p>
 
       <div className="mt-8 flex flex-col gap-7">
+        <section>
+          <h2 className="text-[13px] font-semibold uppercase tracking-wide text-muted-light">
+            Bank accounts
+          </h2>
+          <p className="mt-1 text-[13px] text-muted">
+            Connect a bank to import accounts automatically. Sandbox mode — no real bank data.
+          </p>
+
+          {!accountsLoading && accounts.length > 0 && (
+            <ul className="mt-3 flex flex-col gap-2">
+              {accounts.map((a) => (
+                <li
+                  key={a.id}
+                  className="flex items-center justify-between rounded-lg border border-border bg-surface px-3 py-2.5 text-sm"
+                >
+                  <span className="font-medium text-ink">{a.name}</span>
+                  {a.plaid_item_id && (
+                    <span className="rounded-full bg-highlight px-2 py-0.5 text-[11px] font-semibold text-highlight-text">
+                      Connected
+                    </span>
+                  )}
+                </li>
+              ))}
+            </ul>
+          )}
+
+          <div className="mt-3">
+            <PlaidConnectButton onLinked={refreshAccounts} />
+          </div>
+        </section>
+
         <section>
           <h2 className="text-[13px] font-semibold uppercase tracking-wide text-muted-light">Theme</h2>
           <div className="mt-2 flex gap-2 rounded-[10px] bg-paper-dim p-1">

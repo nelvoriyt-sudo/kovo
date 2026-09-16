@@ -8,6 +8,7 @@ export type Account = {
   type: 'checking' | 'savings' | 'credit_card' | 'cash' | 'other'
   current_balance: number
   is_active: boolean
+  plaid_item_id: string | null
 }
 
 export function useAccounts() {
@@ -19,7 +20,7 @@ export function useAccounts() {
     if (!user) return
     supabase
       .from('accounts')
-      .select('id, name, type, current_balance, is_active')
+      .select('id, name, type, current_balance, is_active, plaid_item_id')
       .eq('is_active', true)
       .order('name')
       .then(({ data }) => {
