@@ -1,21 +1,28 @@
 import { Bank } from '@phosphor-icons/react'
-import { FunctionsHttpError } from '@supabase/supabase-js'
 import { useCallback, useEffect, useState } from 'react'
 import { usePlaidLink, type PlaidLinkOnSuccess } from 'react-plaid-link'
 import { supabase } from '@/lib/supabase'
 
-/** supabase-js doesn't parse the response body on a non-2xx Edge Function
- * response -- the real error message lives on error.context, a Response. */
-async function describeFunctionError(error: unknown, fallback: string): Promise<string> {
-  if (error instanceof FunctionsHttpError) {
-    try {
-      const body = await error.context.json()
-      if (typeof body?.error === 'string') return body.error
-    } catch {
-      // fall through to fallback
-    }
+const FUNCTIONS_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1`
+
+/** Calls a Supabase Edge Function with the current session's token via plain
+ * fetch, so we get the real {error} response body on failure instead of
+ * supabase-js's generic "non-2xx status code" wrapper. */
+async function callFunction<T>(name: string, body?: unknown): Promise<T> {
+  const { data: sessionData } = await supabase.auth.getSession()
+  const token = sessionData.session?.access_token
+  if (!token) throw new Error('You need to be signed in.')
+
+  const res = await fetch(`${FUNCTIONS_URL}/${name}`, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+    body: body ? JSON.stringify(body) : undefined,
+  })
+  const json = await res.json().catch(() => null)
+  if (!res.ok) {
+    throw new Error(json?.error ?? `Request failed (${res.status})`)
   }
-  return error instanceof Error ? error.message : fallback
+  return json as T
 }
 
 export function PlaidConnectButton({ onLinked }: { onLinked: () => void }) {
@@ -26,32 +33,29 @@ export function PlaidConnectButton({ onLinked }: { onLinked: () => void }) {
   const fetchLinkToken = useCallback(async () => {
     setLoading(true)
     setError(null)
-    const { data, error: fnError } = await supabase.functions.invoke<{ link_token?: string }>(
-      'plaid-create-link-token',
-    )
-    setLoading(false)
-    if (fnError || !data?.link_token) {
-      setError(await describeFunctionError(fnError, 'Could not start bank connection.'))
-      return
+    try {
+      const data = await callFunction<{ link_token: string }>('plaid-create-link-token')
+      setLinkToken(data.link_token)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Could not start bank connection.')
+    } finally {
+      setLoading(false)
     }
-    setLinkToken(data.link_token)
   }, [])
 
   const handleSuccess: PlaidLinkOnSuccess = useCallback(
     async (publicToken) => {
       setLoading(true)
       setError(null)
-      const { data, error: fnError } = await supabase.functions.invoke<{ success?: boolean }>(
-        'plaid-exchange-public-token',
-        { body: { public_token: publicToken } },
-      )
-      setLoading(false)
       setLinkToken(null)
-      if (fnError || !data?.success) {
-        setError(await describeFunctionError(fnError, 'Could not finish linking your bank.'))
-        return
+      try {
+        await callFunction('plaid-exchange-public-token', { public_token: publicToken })
+        onLinked()
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Could not finish linking your bank.')
+      } finally {
+        setLoading(false)
       }
-      onLinked()
     },
     [onLinked],
   )
