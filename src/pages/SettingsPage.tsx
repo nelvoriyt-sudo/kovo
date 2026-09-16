@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom'
 import { Select } from '@/components/ui/Select'
 import { useUserSettings } from '@/hooks/useUserSettings'
 import { cn } from '@/lib/utils'
@@ -37,7 +38,7 @@ export function SettingsPage() {
 
         <section>
           <h2 className="text-[13px] font-semibold uppercase tracking-wide text-muted-light">Accent color</h2>
-          <div className="mt-2 flex gap-2">
+          <div className="mt-2 flex flex-wrap items-center gap-2">
             {ACCENT_SWATCHES.map((color) => (
               <button
                 key={color}
@@ -51,6 +52,16 @@ export function SettingsPage() {
                 style={{ backgroundColor: color }}
               />
             ))}
+            <label className="relative flex h-9 w-9 touch-manipulation items-center justify-center rounded-full border border-dashed border-border text-muted-light">
+              <span aria-hidden="true" className="text-lg leading-none">+</span>
+              <span className="sr-only">Pick a custom accent color</span>
+              <input
+                type="color"
+                value={settings.accent_color}
+                onChange={(e) => updateSettings({ accent_color: e.target.value })}
+                className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
+              />
+            </label>
           </div>
         </section>
 
@@ -108,6 +119,17 @@ export function SettingsPage() {
               )}
             />
           </button>
+        </section>
+
+        <section>
+          <h2 className="text-[13px] font-semibold uppercase tracking-wide text-muted-light">Categories</h2>
+          <p className="mt-1 text-[13px] text-muted">Rename, recolor, add, or remove categories.</p>
+          <Link
+            to="/categories"
+            className="mt-2 inline-block text-[14px] font-semibold text-tan-dark hover:text-tan-darker"
+          >
+            Manage categories →
+          </Link>
         </section>
       </div>
     </div>

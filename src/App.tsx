@@ -3,6 +3,7 @@ import { AppShell } from '@/components/AppShell'
 import { ProtectedRoute } from '@/components/ProtectedRoute'
 import { BudgetsPage } from '@/pages/BudgetsPage'
 import { CalendarPage } from '@/pages/CalendarPage'
+import { CategoriesPage } from '@/pages/CategoriesPage'
 import { DashboardPage } from '@/pages/DashboardPage'
 import { ForgotPasswordPage } from '@/pages/ForgotPasswordPage'
 import { LoginPage } from '@/pages/LoginPage'
@@ -75,6 +76,14 @@ export default function App() {
         element={
           <Protected>
             <TransactionsPage />
+          </Protected>
+        }
+      />
+      <Route
+        path="/categories"
+        element={
+          <Protected>
+            <CategoriesPage />
           </Protected>
         }
       />

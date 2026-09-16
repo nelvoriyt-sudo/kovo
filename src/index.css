@@ -19,6 +19,10 @@
   --color-border: #e6ded2;
   --color-muted: #6b645c;
   --color-muted-light: #756b60;
+
+  --color-highlight: #fbf3e8;
+  --color-highlight-border: #e8d9c5;
+  --color-highlight-text: #4a453e;
 }
 
 :root {
@@ -48,4 +52,8 @@ body {
   --color-border: #34302a;
   --color-muted: #a89e90;
   --color-muted-light: #897e70;
+
+  --color-highlight: #2a2115;
+  --color-highlight-border: #4a3a26;
+  --color-highlight-text: #e8dcc8;
 }

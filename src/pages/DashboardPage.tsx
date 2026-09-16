@@ -1,13 +1,20 @@
-import { format } from 'date-fns'
+import { addDays, format } from 'date-fns'
 import { Link } from 'react-router-dom'
+import { CategoryDonut } from '@/components/CategoryDonut'
 import { IncomeExpenseBars } from '@/components/IncomeExpenseBars'
+import { MonthlyTrendChart } from '@/components/MonthlyTrendChart'
 import { StatCard } from '@/components/ui/StatCard'
 import { useMonthlyBudgets } from '@/hooks/useBudgets'
 import { useCategories } from '@/hooks/useCategories'
+import { useIncomeEvents } from '@/hooks/useIncomeEvents'
+import { useMonthlySummaries } from '@/hooks/useMonthlySummaries'
 import { useMonthTransactions } from '@/hooks/useMonthTransactions'
 import { useAuth } from '@/lib/auth'
+import { getCategoryColor } from '@/lib/categoryColors'
 import { useFormatCurrency } from '@/lib/currencyContext'
 import { buildBudgetInsights } from '@/lib/insights'
+
+const EVENT_LABEL = { pay: 'Pay', tip_out: 'Tip-out', other: 'Income' } as const
 
 export function DashboardPage() {
   const { user } = useAuth()
@@ -16,6 +23,11 @@ export function DashboardPage() {
   const { transactions, loading, error } = useMonthTransactions(now)
   const { categories } = useCategories()
   const { budgets } = useMonthlyBudgets(now)
+  const { points: trendPoints } = useMonthlySummaries(6)
+  const { events: upcomingEvents } = useIncomeEvents(
+    format(now, 'yyyy-MM-dd'),
+    format(addDays(now, 30), 'yyyy-MM-dd'),
+  )
 
   const name =
     (user?.user_metadata as { display_name?: string; full_name?: string } | undefined)
@@ -39,6 +51,21 @@ export function DashboardPage() {
   const budgetsByCategory = new Map(budgets.map((b) => [b.category_id, Number(b.amount)]))
   const insights = buildBudgetInsights(categories, spentByCategory, budgetsByCategory, now)
 
+  const categorySlices = [...spentByCategory.entries()]
+    .map(([categoryId, amount]) => {
+      const category = categories.find((c) => c.id === categoryId)
+      return {
+        id: categoryId,
+        name: category?.name ?? 'Uncategorized',
+        amount,
+        color: category ? getCategoryColor(category) : '#a49b8f',
+      }
+    })
+    .sort((a, b) => b.amount - a.amount)
+  const categoryTotal = categorySlices.reduce((sum, s) => sum + s.amount, 0)
+
+  const nextEvents = [...upcomingEvents].sort((a, b) => a.date.localeCompare(b.date)).slice(0, 3)
+
   return (
     <div>
       <h1 className="font-display text-2xl font-semibold text-ink">Welcome, {name}.</h1>
@@ -50,13 +77,6 @@ export function DashboardPage() {
         <p role="alert" className="mt-10 text-[15px] text-[#a34c3f]">
           Couldn't load your transactions: {error}
         </p>
-      ) : transactions.length === 0 ? (
-        <div className="mt-10 rounded-2xl border border-dashed border-border p-10 text-center">
-          <p className="font-display text-lg font-semibold text-ink">Nothing recorded yet</p>
-          <p className="mt-2 text-[15px] text-muted">
-            Once you start adding income and expenses, this month's picture will show up here.
-          </p>
-        </div>
       ) : (
         <>
           <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-3">
@@ -69,16 +89,12 @@ export function DashboardPage() {
             />
           </div>
 
-          <div className="mt-6 rounded-2xl border border-border bg-surface p-6">
-            <IncomeExpenseBars income={income} expenses={expenses} />
-          </div>
-
           {insights.length > 0 && (
             <div className="mt-6 flex flex-col gap-2">
               {insights.slice(0, 3).map((insight) => (
                 <div
                   key={insight.id}
-                  className="rounded-xl border border-[#e8d9c5] bg-[#fbf3e8] px-4 py-3 text-[14px] text-[#4a453e]"
+                  className="rounded-xl border border-highlight-border bg-highlight px-4 py-3 text-[14px] text-highlight-text"
                 >
                   {insight.overAmount > 0 ? (
                     <>
@@ -96,20 +112,96 @@ export function DashboardPage() {
               ))}
             </div>
           )}
+
+          {transactions.length === 0 ? (
+            <div className="mt-6 rounded-2xl border border-dashed border-border p-10 text-center">
+              <p className="font-display text-lg font-semibold text-ink">Nothing recorded yet</p>
+              <p className="mt-2 text-[15px] text-muted">
+                Once you start adding income and expenses, this month's picture will show up here.
+              </p>
+            </div>
+          ) : (
+            <div className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-2">
+              <div className="rounded-2xl border border-border bg-surface p-6">
+                <div className="mb-4 flex items-center justify-between">
+                  <h2 className="font-display text-base font-semibold text-ink">Income vs. expenses</h2>
+                  <Link to="/trends" className="text-[13px] font-semibold text-tan-dark hover:text-tan-darker">
+                    View trend →
+                  </Link>
+                </div>
+                <IncomeExpenseBars income={income} expenses={expenses} />
+                {trendPoints.some((p) => p.income > 0 || p.expenses > 0) && (
+                  <div className="mt-6 border-t border-border pt-5">
+                    <MonthlyTrendChart points={trendPoints} />
+                  </div>
+                )}
+              </div>
+
+              <div className="rounded-2xl border border-border bg-surface p-6">
+                <div className="mb-4 flex items-center justify-between">
+                  <h2 className="font-display text-base font-semibold text-ink">Spending by category</h2>
+                  <Link to="/spending" className="text-[13px] font-semibold text-tan-dark hover:text-tan-darker">
+                    View all →
+                  </Link>
+                </div>
+                {categorySlices.length === 0 ? (
+                  <p className="text-[14px] text-muted">No expenses logged yet this month.</p>
+                ) : (
+                  <div className="flex items-center gap-6">
+                    <CategoryDonut slices={categorySlices} total={categoryTotal} />
+                    <ul className="flex flex-1 flex-col gap-2">
+                      {categorySlices.slice(0, 4).map((s) => (
+                        <li key={s.id} className="flex items-center gap-2 text-[13px] text-ink">
+                          <span
+                            className="h-2.5 w-2.5 shrink-0 rounded-full"
+                            style={{ backgroundColor: s.color }}
+                            aria-hidden="true"
+                          />
+                          <span className="flex-1 truncate">{s.name}</span>
+                          <span className="font-semibold">{formatCurrency(s.amount)}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          <div className="mt-4 rounded-2xl border border-border bg-surface p-6">
+            <div className="mb-3 flex items-center justify-between">
+              <h2 className="font-display text-base font-semibold text-ink">Upcoming</h2>
+              <Link to="/calendar" className="text-[13px] font-semibold text-tan-dark hover:text-tan-darker">
+                Open calendar →
+              </Link>
+            </div>
+            {nextEvents.length === 0 ? (
+              <p className="text-[14px] text-muted">
+                Nothing scheduled in the next 30 days. Set a pay period on the calendar to see it here.
+              </p>
+            ) : (
+              <ul className="flex flex-col gap-2.5">
+                {nextEvents.map((e) => (
+                  <li key={e.id} className="flex items-center gap-3 text-[14px]">
+                    <span
+                      className={
+                        'h-2 w-2 shrink-0 rounded-full ' +
+                        (e.type === 'pay' ? 'bg-[#a34c3f]' : e.type === 'tip_out' ? 'bg-[#4d7358]' : 'bg-tan')
+                      }
+                      aria-hidden="true"
+                    />
+                    <span className="text-muted">{format(new Date(`${e.date}T00:00:00`), 'EEE, MMM d')}</span>
+                    <span className="font-medium text-ink">{EVENT_LABEL[e.type]}</span>
+                    {e.amount != null && (
+                      <span className="ml-auto font-semibold text-ink">{formatCurrency(e.amount)}</span>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
         </>
       )}
-
-      <div className="mt-6 flex flex-wrap gap-3 text-sm">
-        <Link to="/spending" className="font-semibold text-tan-dark hover:text-tan-darker">
-          Spending by category →
-        </Link>
-        <Link to="/trends" className="font-semibold text-tan-dark hover:text-tan-darker">
-          Trends over time →
-        </Link>
-        <Link to="/budgets" className="font-semibold text-tan-dark hover:text-tan-darker">
-          Budgets →
-        </Link>
-      </div>
     </div>
   )
 }

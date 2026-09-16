@@ -1,5 +1,5 @@
 /** Warm, muted palette matching the kovo brand — used when a category has no custom color set. */
-const FALLBACK_PALETTE = [
+export const CATEGORY_PALETTE = [
   '#c9a27c', // tan
   '#8a5a3f', // terracotta
   '#4d7358', // sage
@@ -18,5 +18,5 @@ export function getCategoryColor(category: { id: string; color: string | null })
   for (let i = 0; i < category.id.length; i++) {
     hash = (hash * 31 + category.id.charCodeAt(i)) >>> 0
   }
-  return FALLBACK_PALETTE[hash % FALLBACK_PALETTE.length]
+  return CATEGORY_PALETTE[hash % CATEGORY_PALETTE.length]
 }
