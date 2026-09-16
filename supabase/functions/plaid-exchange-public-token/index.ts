@@ -60,6 +60,7 @@ Deno.serve(async (req: Request) => {
   if (!authHeader) {
     return json({ error: 'Missing authorization' }, 401)
   }
+  const jwt = authHeader.replace(/^Bearer\s+/i, '')
 
   const supabase = createClient(
     Deno.env.get('SUPABASE_URL')!,
@@ -67,7 +68,9 @@ Deno.serve(async (req: Request) => {
     { global: { headers: { Authorization: authHeader } } },
   )
 
-  const { data: userData, error: userError } = await supabase.auth.getUser()
+  // Pass the JWT explicitly rather than relying on the client's internal
+  // session state (the global-header-only approach proved unreliable).
+  const { data: userData, error: userError } = await supabase.auth.getUser(jwt)
   if (userError || !userData.user) {
     return json({ error: 'Unauthorized' }, 401)
   }

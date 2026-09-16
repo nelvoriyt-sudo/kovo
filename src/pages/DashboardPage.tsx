@@ -43,6 +43,8 @@ export function DashboardPage() {
     .reduce((sum, t) => sum + Number(t.amount), 0)
   const surplus = income - expenses
 
+  // Budget matching needs real category ids only; uncategorized spend can't
+  // be checked against a budget since budgets are set per-category.
   const spentByCategory = new Map<string, number>()
   for (const t of transactions) {
     if (t.type !== 'expense' || !t.category_id) continue
@@ -51,7 +53,18 @@ export function DashboardPage() {
   const budgetsByCategory = new Map(budgets.map((b) => [b.category_id, Number(b.amount)]))
   const insights = buildBudgetInsights(categories, spentByCategory, budgetsByCategory, now)
 
-  const categorySlices = [...spentByCategory.entries()]
+  // The category breakdown shown to the user should account for every dollar
+  // of expense, including transactions with no category (e.g. freshly synced
+  // from a bank, before the user has categorized them) -- otherwise this
+  // total silently disagrees with the Expenses stat card above it.
+  const spentByCategoryOrUncategorized = new Map<string, number>()
+  for (const t of transactions) {
+    if (t.type !== 'expense') continue
+    const key = t.category_id ?? 'uncategorized'
+    spentByCategoryOrUncategorized.set(key, (spentByCategoryOrUncategorized.get(key) ?? 0) + Number(t.amount))
+  }
+
+  const categorySlices = [...spentByCategoryOrUncategorized.entries()]
     .map(([categoryId, amount]) => {
       const category = categories.find((c) => c.id === categoryId)
       return {
