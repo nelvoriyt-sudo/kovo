@@ -1,7 +1,22 @@
 import { Bank } from '@phosphor-icons/react'
+import { FunctionsHttpError } from '@supabase/supabase-js'
 import { useCallback, useEffect, useState } from 'react'
 import { usePlaidLink, type PlaidLinkOnSuccess } from 'react-plaid-link'
 import { supabase } from '@/lib/supabase'
+
+/** supabase-js doesn't parse the response body on a non-2xx Edge Function
+ * response -- the real error message lives on error.context, a Response. */
+async function describeFunctionError(error: unknown, fallback: string): Promise<string> {
+  if (error instanceof FunctionsHttpError) {
+    try {
+      const body = await error.context.json()
+      if (typeof body?.error === 'string') return body.error
+    } catch {
+      // fall through to fallback
+    }
+  }
+  return error instanceof Error ? error.message : fallback
+}
 
 export function PlaidConnectButton({ onLinked }: { onLinked: () => void }) {
   const [linkToken, setLinkToken] = useState<string | null>(null)
@@ -11,12 +26,12 @@ export function PlaidConnectButton({ onLinked }: { onLinked: () => void }) {
   const fetchLinkToken = useCallback(async () => {
     setLoading(true)
     setError(null)
-    const { data, error: fnError } = await supabase.functions.invoke<{ link_token?: string; error?: string }>(
+    const { data, error: fnError } = await supabase.functions.invoke<{ link_token?: string }>(
       'plaid-create-link-token',
     )
     setLoading(false)
     if (fnError || !data?.link_token) {
-      setError(data?.error ?? fnError?.message ?? 'Could not start bank connection.')
+      setError(await describeFunctionError(fnError, 'Could not start bank connection.'))
       return
     }
     setLinkToken(data.link_token)
@@ -26,14 +41,14 @@ export function PlaidConnectButton({ onLinked }: { onLinked: () => void }) {
     async (publicToken) => {
       setLoading(true)
       setError(null)
-      const { data, error: fnError } = await supabase.functions.invoke<{ error?: string; success?: boolean }>(
+      const { data, error: fnError } = await supabase.functions.invoke<{ success?: boolean }>(
         'plaid-exchange-public-token',
         { body: { public_token: publicToken } },
       )
       setLoading(false)
       setLinkToken(null)
       if (fnError || !data?.success) {
-        setError(data?.error ?? fnError?.message ?? 'Could not finish linking your bank.')
+        setError(await describeFunctionError(fnError, 'Could not finish linking your bank.'))
         return
       }
       onLinked()
