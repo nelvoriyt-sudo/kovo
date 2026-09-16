@@ -102,7 +102,7 @@ export function AddTransactionModal({
   return (
     <Modal open={open} onClose={() => { reset(); onClose() }} title="Add transaction">
       <form onSubmit={handleSubmit} className="flex flex-col gap-4" noValidate>
-        <div className="flex gap-2 rounded-[5px] bg-raise p-1">
+        <div className="flex gap-0.5 rounded-[5px] bg-raise p-[3px]">
           {(['expense', 'income'] as const).map((t) => (
             <button
               key={t}
@@ -112,8 +112,10 @@ export function AddTransactionModal({
                 setCategoryId('')
               }}
               className={cn(
-                'flex-1 touch-manipulation rounded-lg py-2 text-sm font-semibold capitalize transition-colors',
-                type === t ? 'bg-accent text-on-accent' : 'text-muted hover:text-ink',
+                'flex-1 touch-manipulation rounded-[3px] py-2 text-sm capitalize transition-colors duration-150',
+                type === t
+                  ? 'bg-accent font-semibold text-on-accent'
+                  : 'font-medium text-muted hover:text-ink',
               )}
             >
               {t}

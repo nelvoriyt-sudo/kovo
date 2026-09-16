@@ -11,13 +11,15 @@ export function LegalLayout({ title, children }: { title: string; children: Reac
         </Link>
       </header>
       <main className="mx-auto max-w-2xl px-6 py-14 sm:px-10">
-        <h1 className="font-display text-3xl font-semibold text-ink">{title}</h1>
+        <h1 className="font-display text-[30px] font-semibold tracking-[-0.025em] text-ink">
+          {title}
+        </h1>
         <div className="prose-legal mt-8 flex flex-col gap-5 text-[15px] leading-relaxed text-muted">
           {children}
         </div>
         <Link
           to="/login"
-          className="mt-12 inline-block text-sm font-semibold text-accent hover:text-accent"
+          className="mt-12 inline-block text-sm font-semibold text-accent hover:underline"
         >
           ← Back to sign in
         </Link>

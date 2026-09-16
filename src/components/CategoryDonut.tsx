@@ -143,7 +143,7 @@ export function CategoryDonut({
         </div>
       </div>
 
-      <ul className="flex w-full min-w-0 flex-col gap-px">
+      <ul className="flex w-full min-w-0 max-w-[420px] flex-col gap-px">
         {shown.map((slice, i) => (
           <li key={slice.id}>
             <button

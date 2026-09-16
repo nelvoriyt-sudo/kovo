@@ -23,6 +23,7 @@ export function ThemeSwatch({
       type="button"
       onClick={onSelect}
       aria-pressed={selected}
+      aria-label={`${palette.name} palette`}
       className="group flex touch-manipulation flex-col items-center gap-2 rounded-[4px] p-1"
     >
       <svg

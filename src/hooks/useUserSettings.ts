@@ -1,7 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useState } from 'react'
 import { useAuth } from '@/lib/auth'
 import { supabase } from '@/lib/supabase'
-import type { ThemeId } from '@/lib/themes'
+import { isThemeId, type ThemeId } from '@/lib/themes'
 
 export type UserSettings = {
   theme: ThemeId
@@ -32,9 +32,26 @@ export const UserSettingsContext = createContext<UserSettingsContextValue | unde
  * useUserSettings() reads this same instance, so a change made in one place
  * (Settings) is immediately visible everywhere else without a page reload.
  */
+/**
+ * index.html paints the last-used theme before React mounts. Seeding state from
+ * the same value keeps React's first render in agreement with it, instead of
+ * flashing the default theme until the fetch resolves.
+ */
+function storedTheme(): ThemeId | undefined {
+  try {
+    const raw = localStorage.getItem(THEME_STORAGE_KEY)
+    return raw && isThemeId(raw) ? raw : undefined
+  } catch {
+    return undefined
+  }
+}
+
 export function useUserSettingsState(): UserSettingsContextValue {
   const { user } = useAuth()
-  const [settings, setSettings] = useState<UserSettings>(defaults)
+  const [settings, setSettings] = useState<UserSettings>(() => ({
+    ...defaults,
+    theme: storedTheme() ?? defaults.theme,
+  }))
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {

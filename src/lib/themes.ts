@@ -42,10 +42,10 @@ export const BASE_MODES = [
   { id: 'system' as const, name: 'System' },
 ]
 
-const PALETTE_IDS = new Set<string>(PALETTES.map((p) => p.id))
+const THEME_IDS = new Set<string>([...PALETTES.map((p) => p.id), 'light', 'dark', 'system'])
 
-export function isPalette(theme: string): boolean {
-  return PALETTE_IDS.has(theme)
+export function isThemeId(value: string): value is ThemeId {
+  return THEME_IDS.has(value)
 }
 
 /**
